@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,6 +25,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -234,6 +236,7 @@ fun GroupChatScreen(
     viewModel: GroupChatViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val listState = rememberLazyListState()
     val context = LocalContext.current
     var messageToForward by remember { mutableStateOf<ChatMessageUiModel?>(null) }
     var input by remember { mutableStateOf("") }
@@ -244,6 +247,24 @@ fun GroupChatScreen(
 
     DisposableEffect(Unit) {
         onDispose { ChatVoiceInlinePlayer.stop() }
+    }
+
+    var previousLastMessageId by remember(uiState.groupId) { mutableStateOf<String?>(null) }
+    LaunchedEffect(uiState.messages.lastOrNull()?.id, uiState.messages.size) {
+        val list = uiState.messages
+        val last = list.lastOrNull() ?: run {
+            previousLastMessageId = null
+            return@LaunchedEffect
+        }
+        val id = last.id
+        if (previousLastMessageId == id) return@LaunchedEffect
+        val oldId = previousLastMessageId
+        previousLastMessageId = id
+        if (!last.isMine) return@LaunchedEffect
+        when {
+            oldId == null && list.size == 1 -> listState.animateScrollToItem(0)
+            oldId != null && oldId != id -> listState.animateScrollToItem(list.lastIndex)
+        }
     }
 
     if (messageToForward != null) {
@@ -303,6 +324,7 @@ fun GroupChatScreen(
             EmptyState(title = "暂无群消息", body = "发送一条文本或文件消息开始群聊。")
         } else {
             LazyColumn(
+                state = listState,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),

@@ -396,6 +396,33 @@ fun DirectChatScreen(
         didInitialUnreadScroll = true
     }
 
+    /**
+     * 自己发送后列表追加己方消息时滚到最新一条。
+     * 首屏加载（previousLastMessageId 首次为 null 且条数>1）不滚，避免覆盖未读首条定位；
+     * 空会话首条自己消息（仅 1 条且为己方）会滚到索引 0。
+     */
+    var previousLastMessageId by remember(uiState.conversationId) { mutableStateOf<String?>(null) }
+    LaunchedEffect(uiState.messages.lastOrNull()?.id, uiState.messages.size) {
+        val list = uiState.messages
+        val last = list.lastOrNull() ?: run {
+            previousLastMessageId = null
+            return@LaunchedEffect
+        }
+        val id = last.id
+        if (previousLastMessageId == id) return@LaunchedEffect
+        val oldId = previousLastMessageId
+        previousLastMessageId = id
+        if (!last.isMine) return@LaunchedEffect
+        when {
+            oldId == null && list.size == 1 -> {
+                listState.animateScrollToItem(0)
+            }
+            oldId != null && oldId != id -> {
+                listState.animateScrollToItem(list.lastIndex)
+            }
+        }
+    }
+
     val showJumpLatestFab by remember {
         derivedStateOf {
             val n = uiState.messages.size
