@@ -1,20 +1,30 @@
 package com.github.com.chenjia404.meshchat.navigation
 
+import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.PersonOutline
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.github.com.chenjia404.meshchat.feature.appupdate.AppUpdateViewModel
 import androidx.navigation.NavType
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -45,6 +55,13 @@ private data class BottomDestination(
 @Composable
 fun MeshChatNavHost() {
     val navController = rememberNavController()
+    val appUpdateViewModel: AppUpdateViewModel = hiltViewModel()
+    val appUpdateInfo by appUpdateViewModel.appUpdateInfo.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        appUpdateViewModel.checkForAppUpdate(context)
+    }
     val destinations = listOf(
         BottomDestination("chat_list", "会话") { Icon(Icons.Outlined.ChatBubbleOutline, null) },
         BottomDestination("contacts", "联系人") { Icon(Icons.Outlined.PersonOutline, null) },
@@ -62,6 +79,7 @@ fun MeshChatNavHost() {
         "audio_player/{url}/{title}",
     )
 
+    Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         bottomBar = {
             val backStackEntry by navController.currentBackStackEntryAsState()
@@ -224,5 +242,39 @@ fun MeshChatNavHost() {
                 )
             }
         }
+    }
+
+    appUpdateInfo?.let { info ->
+        AlertDialog(
+            onDismissRequest = { appUpdateViewModel.dismissAppUpdatePrompt() },
+            title = { Text("发现新版本") },
+            text = {
+                Text(
+                    "当前版本：${info.currentVersion}\n" +
+                        "最新版本：${info.latestVersion}\n\n是否前往 GitHub 下载安装包？",
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        runCatching {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(info.releaseUrl)).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            context.startActivity(intent)
+                        }
+                        appUpdateViewModel.dismissAppUpdatePrompt()
+                    },
+                ) {
+                    Text("立即更新")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { appUpdateViewModel.dismissAppUpdatePrompt() }) {
+                    Text("稍后")
+                }
+            },
+        )
+    }
     }
 }
