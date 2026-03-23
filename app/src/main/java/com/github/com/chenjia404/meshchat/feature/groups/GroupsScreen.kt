@@ -26,6 +26,7 @@ import androidx.lifecycle.viewModelScope
 import com.github.com.chenjia404.meshchat.core.ui.AvatarImage
 import com.github.com.chenjia404.meshchat.core.ui.EmptyState
 import com.github.com.chenjia404.meshchat.core.ui.SectionTitle
+import com.github.com.chenjia404.meshchat.domain.repository.ContactsRepository
 import com.github.com.chenjia404.meshchat.domain.repository.GroupRepository
 import com.github.com.chenjia404.meshchat.service.storage.ChatAttachmentUrlBuilder
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -47,9 +48,18 @@ data class GroupsUiState(
     val items: List<GroupUiModel> = emptyList(),
 )
 
+/** 创建群聊时从联系人多选成员 */
+data class CreateGroupContactRow(
+    val peerId: String,
+    val title: String,
+    val subtitle: String,
+    val avatarUrl: String?,
+)
+
 @HiltViewModel
 class GroupsViewModel @Inject constructor(
     private val groupRepository: GroupRepository,
+    contactsRepository: ContactsRepository,
     private val attachmentUrlBuilder: ChatAttachmentUrlBuilder,
 ) : ViewModel() {
     val uiState: StateFlow<GroupsUiState> = groupRepository.groups
@@ -67,9 +77,25 @@ class GroupsViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), GroupsUiState())
 
-    fun createGroup(title: String, membersText: String) {
-        val members = membersText.split(",").map { it.trim() }.filter { it.isNotBlank() }
-        viewModelScope.launch { groupRepository.createGroup(title, members) }
+    /** 未拉黑的好友，用于创建群时多选 */
+    val createGroupContacts: StateFlow<List<CreateGroupContactRow>> =
+        contactsRepository.contacts
+            .map { contacts ->
+                contacts
+                    .filter { !it.blocked }
+                    .map { c ->
+                        CreateGroupContactRow(
+                            peerId = c.peerId,
+                            title = c.nickname.ifBlank { c.remoteNickname ?: c.peerId },
+                            subtitle = c.peerId,
+                            avatarUrl = attachmentUrlBuilder.avatarUrl(c.avatar),
+                        )
+                    }
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun createGroup(title: String, memberPeerIds: List<String>) {
+        viewModelScope.launch { groupRepository.createGroup(title, memberPeerIds) }
     }
 }
 
