@@ -132,8 +132,9 @@ interface MeshChatApi {
         @Body body: RetentionBodyDto,
     ): DirectConversationDto
 
+    /** 服务端可能返回空 body，Retrofit 会得到 null，故声明为可空 */
     @GET("/api/v1/groups")
-    suspend fun getGroups(): List<GroupDto>
+    suspend fun getGroups(): List<GroupDto>?
 
     @POST("/api/v1/groups")
     suspend fun createGroup(@Body body: CreateGroupBodyDto): GroupDto

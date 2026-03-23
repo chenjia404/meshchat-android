@@ -259,7 +259,7 @@ class DefaultGroupRepository @Inject constructor(
         database.groupMessageDao().observeMessages(groupId).map { list -> list.map { it.toDomain() } }
 
     override suspend fun refreshGroups() = withContext(ioDispatcher) {
-        val items = api.getGroups().map { it.toDomain().toEntity() }
+        val items = api.getGroups().orEmpty().map { it.toDomain().toEntity() }
         database.withTransaction {
             database.groupDao().clearAll()
             database.groupDao().upsertAll(items)
