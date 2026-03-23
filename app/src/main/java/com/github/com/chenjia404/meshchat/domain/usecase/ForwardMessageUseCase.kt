@@ -61,7 +61,7 @@ class ForwardMessageUseCase @Inject constructor(
                 val url = downloadUrl ?: error("附件缺少下载地址")
                 val baseName = fileName?.takeIf { it.isNotBlank() } ?: "meshchat-attachment"
                 val safeName = baseName.replace("/", "_")
-                val downloaded = fileDownloadService.download(url, safeName)
+                val downloaded = fileDownloadService.downloadToTempForForward(url, safeName)
                 try {
                     destinations.forEach { dest ->
                         val copy = File(

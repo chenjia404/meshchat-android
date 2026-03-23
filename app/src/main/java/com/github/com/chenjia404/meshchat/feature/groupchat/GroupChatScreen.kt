@@ -1,5 +1,6 @@
 package com.github.com.chenjia404.meshchat.feature.groupchat
 
+import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -50,16 +51,21 @@ import com.github.com.chenjia404.meshchat.domain.usecase.ForwardMessageUseCase
 import com.github.com.chenjia404.meshchat.feature.forward.ForwardTargetPickerDialog
 import com.github.com.chenjia404.meshchat.feature.forward.ForwardTargetRowItem
 import com.github.com.chenjia404.meshchat.feature.forward.toForwardDestination
+import com.github.com.chenjia404.meshchat.service.download.ApkInstallHelper
 import com.github.com.chenjia404.meshchat.service.download.FileDownloadService
+import com.github.com.chenjia404.meshchat.service.download.PublicDownloadResult
 import com.github.com.chenjia404.meshchat.service.storage.ChatAttachmentUrlBuilder
 import com.github.com.chenjia404.meshchat.service.storage.UriFileResolver
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 
@@ -73,6 +79,7 @@ data class GroupChatUiState(
 @HiltViewModel
 class GroupChatViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    @ApplicationContext private val appContext: Context,
     private val groupRepository: GroupRepository,
     profileRepository: ProfileRepository,
     private val attachmentUrlBuilder: ChatAttachmentUrlBuilder,
@@ -152,7 +159,41 @@ class GroupChatViewModel @Inject constructor(
     fun download(message: ChatMessageUiModel) {
         val url = message.remoteUrl ?: return
         val fileName = message.fileName ?: "meshchat-attachment"
-        viewModelScope.launch { fileDownloadService.download(url, fileName) }
+        viewModelScope.launch {
+            runCatching {
+                when (val result = fileDownloadService.downloadToPublicDownloads(url, fileName)) {
+                    is PublicDownloadResult.Success -> {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                appContext,
+                                "已保存到「下载/MeshChat」",
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                            if (fileName.endsWith(".apk", ignoreCase = true)) {
+                                ApkInstallHelper.tryStartInstall(appContext, result.uri)
+                            }
+                        }
+                    }
+                    PublicDownloadResult.QueuedSystemDownload -> {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                appContext,
+                                "已加入系统下载，请在通知栏或「下载」中查看",
+                                Toast.LENGTH_LONG,
+                            ).show()
+                        }
+                    }
+                }
+            }.onFailure { e ->
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        appContext,
+                        e.message ?: "下载失败",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+            }
+        }
     }
 
     fun forwardMessage(

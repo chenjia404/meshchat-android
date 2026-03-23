@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- 与 FileDownloadService 写入的公共下载子目录 Download/MeshChat 对应 -->
+    <external-path
+        name="meshchat_public_downloads"
+        path="Download/MeshChat/" />
+</paths>
