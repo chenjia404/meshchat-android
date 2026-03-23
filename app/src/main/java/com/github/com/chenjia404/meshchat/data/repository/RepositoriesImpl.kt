@@ -107,7 +107,7 @@ class DefaultContactsRepository @Inject constructor(
     override val requests: Flow<List<FriendRequest>> = database.friendRequestDao().observeRequests().map { list -> list.map { it.toDomain() } }
 
     override suspend fun refreshContacts() = withContext(ioDispatcher) {
-        val contacts = api.getContacts().map { it.toDomain().toEntity() }
+        val contacts = api.getContacts().orEmpty().map { it.toDomain().toEntity() }
         database.withTransaction {
             database.contactDao().clearAll()
             database.contactDao().upsertAll(contacts)
@@ -115,7 +115,7 @@ class DefaultContactsRepository @Inject constructor(
     }
 
     override suspend fun refreshRequests() = withContext(ioDispatcher) {
-        val requests = api.getRequests().map { it.toDomain().toEntity() }
+        val requests = api.getRequests().orEmpty().map { it.toDomain().toEntity() }
         database.withTransaction {
             database.friendRequestDao().clearAll()
             database.friendRequestDao().upsertAll(requests)
@@ -175,7 +175,7 @@ class DefaultDirectChatRepository @Inject constructor(
         database.directConversationDao().observeConversation(conversationId).map { it?.toDomain() }
 
     override suspend fun refreshConversations() = withContext(ioDispatcher) {
-        val items = api.getConversations().map { it.toDomain().toEntity() }
+        val items = api.getConversations().orEmpty().map { it.toDomain().toEntity() }
         database.withTransaction {
             database.directConversationDao().clearAll()
             database.directConversationDao().upsertAll(items)

@@ -52,8 +52,9 @@ interface MeshChatApi {
     @GET("/api/v1/chat/avatars/{name}")
     suspend fun getAvatar(@Path("name") name: String): ResponseBody
 
+    /** 无数据时服务端可能返回空 body，Retrofit 为 null，须可空 */
     @GET("/api/v1/chat/requests")
-    suspend fun getRequests(): List<FriendRequestDto>
+    suspend fun getRequests(): List<FriendRequestDto>?
 
     @POST("/api/v1/chat/requests")
     suspend fun sendRequest(@Body body: SendFriendRequestBodyDto): FriendRequestDto
@@ -65,7 +66,7 @@ interface MeshChatApi {
     suspend fun rejectRequest(@Path("request_id") requestId: String): SimpleStatusDto
 
     @GET("/api/v1/chat/contacts")
-    suspend fun getContacts(): List<ContactDto>
+    suspend fun getContacts(): List<ContactDto>?
 
     @DELETE("/api/v1/chat/contacts/{peer_id}")
     suspend fun deleteContact(@Path("peer_id") peerId: String): SimpleStatusDto
@@ -83,7 +84,7 @@ interface MeshChatApi {
     ): ContactDto
 
     @GET("/api/v1/chat/conversations")
-    suspend fun getConversations(): List<DirectConversationDto>
+    suspend fun getConversations(): List<DirectConversationDto>?
 
     @DELETE("/api/v1/chat/conversations/{conversation_id}")
     suspend fun deleteConversation(@Path("conversation_id") conversationId: String): SimpleStatusDto
