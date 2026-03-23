@@ -109,7 +109,7 @@ fun SectionTitle(title: String) {
     )
 }
 
-/** 气泡上方一行：对方左昵称右时间（仅 [showSenderName] 为 true，如群聊）；单聊对方仅显示时间；己方右对齐仅时间；系统消息居中时间 */
+/** 气泡上方一行：对方左昵称右时间；己方右对齐「时间 + 发送状态」；系统消息居中时间（己方同样可带状态） */
 @Composable
 private fun ChatMessageMetaRow(
     message: ChatMessageUiModel,
@@ -120,14 +120,28 @@ private fun ChatMessageMetaRow(
         color = ChatMetaGray,
         fontSize = 11.sp,
     )
+    val stateLabel = if (message.isMine) formatMessageStateLabel(message.state) else ""
     when (message.renderType) {
         AttachmentRenderType.SYSTEM -> {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = if (message.isMine) Arrangement.End else Arrangement.Center,
+                horizontalArrangement = when {
+                    message.isMine -> Arrangement.End
+                    else -> Arrangement.Center
+                },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(text = timeText, style = timeStyle)
+                if (message.isMine && stateLabel.isNotEmpty()) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = stateLabel,
+                        color = if (isFailedMessageState(message.state)) Color(0xFFDE0000) else ChatMetaGray,
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
         else -> {
@@ -151,10 +165,27 @@ private fun ChatMessageMetaRow(
                             .padding(end = 8.dp),
                     )
                 }
-                Text(
-                    text = timeText,
-                    style = timeStyle,
-                )
+                if (message.isMine) {
+                    Text(
+                        text = timeText,
+                        style = timeStyle,
+                    )
+                    if (stateLabel.isNotEmpty()) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = stateLabel,
+                            color = if (isFailedMessageState(message.state)) Color(0xFFDE0000) else ChatMetaGray,
+                            fontSize = 11.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                } else {
+                    Text(
+                        text = timeText,
+                        style = timeStyle,
+                    )
+                }
             }
         }
     }
@@ -253,25 +284,6 @@ fun ChatMessageBubble(
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(text = message.subtitle, color = onBubbleMuted)
                         }
-                    }
-                }
-            }
-            if (message.isMine) {
-                val stateLabel = formatMessageStateLabel(message.state)
-                if (stateLabel.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = stateLabel,
-                            color = if (isFailedMessageState(message.state)) Color(0xFFDE0000) else ChatMetaGray,
-                            fontSize = 11.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
                     }
                 }
             }
