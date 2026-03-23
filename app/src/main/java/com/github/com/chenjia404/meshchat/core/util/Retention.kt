@@ -1,15 +1,19 @@
 package com.github.com.chenjia404.meshchat.core.util
 
+import android.content.res.Resources
+import androidx.annotation.StringRes
+import com.github.com.chenjia404.meshchat.R
+
 /**
  * 与 Quark 一致：月 = 30 天、周 = 7 天。
  */
-enum class RetentionTimeUnit(val label: String) {
-    MINUTE("分钟"),
-    HOUR("小时"),
-    DAY("天"),
-    WEEK("周"),
+enum class RetentionTimeUnit(@StringRes val labelRes: Int) {
+    MINUTE(R.string.retention_unit_minute),
+    HOUR(R.string.retention_unit_hour),
+    DAY(R.string.retention_unit_day),
+    WEEK(R.string.retention_unit_week),
     /** 按 30×24×60 分钟，与 Quark `chat_retention_unit_month` 一致 */
-    MONTH("月（30 天）"),
+    MONTH(R.string.retention_unit_month),
 }
 
 private const val MINUTES_PER_MONTH = 30 * 24 * 60
@@ -19,16 +23,23 @@ private const val MINUTES_PER_HOUR = 60
 
 /**
  * 顶栏短文案：在 月 > 周 > 天 > 小时 > 分钟 中取**最大粒度**，对总分钟数**向下取整**为整数个单位。
- * 例：1000 分钟 → 16 小时；43200 分钟 → 1 月。
  */
-fun formatRetentionDisplayShort(totalMinutes: Int): String {
-    if (totalMinutes <= 0) return "不限制"
+fun formatRetentionDisplayShort(resources: Resources, totalMinutes: Int): String {
+    if (totalMinutes <= 0) return resources.getString(R.string.retention_unlimited)
     val m = totalMinutes
-    if (m >= MINUTES_PER_MONTH) return "${m / MINUTES_PER_MONTH} 月"
-    if (m >= MINUTES_PER_WEEK) return "${m / MINUTES_PER_WEEK} 周"
-    if (m >= MINUTES_PER_DAY) return "${m / MINUTES_PER_DAY} 天"
-    if (m >= MINUTES_PER_HOUR) return "${m / MINUTES_PER_HOUR} 小时"
-    return "$m 分钟"
+    if (m >= MINUTES_PER_MONTH) {
+        return resources.getString(R.string.retention_display_months, m / MINUTES_PER_MONTH)
+    }
+    if (m >= MINUTES_PER_WEEK) {
+        return resources.getString(R.string.retention_display_weeks, m / MINUTES_PER_WEEK)
+    }
+    if (m >= MINUTES_PER_DAY) {
+        return resources.getString(R.string.retention_display_days, m / MINUTES_PER_DAY)
+    }
+    if (m >= MINUTES_PER_HOUR) {
+        return resources.getString(R.string.retention_display_hours, m / MINUTES_PER_HOUR)
+    }
+    return resources.getString(R.string.retention_display_minutes, m)
 }
 
 /** 数量 × 单位 → 总分钟（Long，避免乘法溢出中间步骤） */

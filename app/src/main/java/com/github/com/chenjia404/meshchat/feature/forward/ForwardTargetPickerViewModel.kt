@@ -20,7 +20,7 @@ data class ForwardTargetRowItem(
     /** 格式：`d:` + conversationId 或 `g:` + groupId */
     val id: String,
     val title: String,
-    val subtitle: String,
+    val isGroup: Boolean,
     val avatarUrl: String?,
     /** 用于排序（ISO 时间字符串，越大越新） */
     private val sortKey: String,
@@ -35,7 +35,7 @@ data class ForwardTargetRowItem(
             return ForwardTargetRowItem(
                 id = "d:${conversation.conversationId}",
                 title = title,
-                subtitle = "私聊",
+                isGroup = false,
                 avatarUrl = avatarUrl,
                 sortKey = t,
             )
@@ -46,7 +46,7 @@ data class ForwardTargetRowItem(
             return ForwardTargetRowItem(
                 id = "g:${group.groupId}",
                 title = group.title.ifBlank { group.groupId },
-                subtitle = "群聊",
+                isGroup = true,
                 avatarUrl = avatarUrl,
                 sortKey = t,
             )

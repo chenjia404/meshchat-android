@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -65,7 +66,9 @@ import com.github.com.chenjia404.meshchat.core.ui.AvatarImage
 import com.github.com.chenjia404.meshchat.core.ui.ChatMessageBubble
 import com.github.com.chenjia404.meshchat.core.ui.ChatMessageUiModel
 import com.github.com.chenjia404.meshchat.core.ui.EmptyState
+import com.github.com.chenjia404.meshchat.R
 import com.github.com.chenjia404.meshchat.core.util.AttachmentRenderType
+import com.github.com.chenjia404.meshchat.core.util.attachmentSubtitle
 import com.github.com.chenjia404.meshchat.core.util.resolveRenderType
 import com.github.com.chenjia404.meshchat.domain.model.MessageDirection
 import com.github.com.chenjia404.meshchat.domain.repository.ContactsRepository
@@ -140,16 +143,13 @@ class DirectChatViewModel @Inject constructor(
                 val renderType = resolveRenderType(message.msgType, message.mimeType, message.fileName)
                 ChatMessageUiModel(
                     id = message.msgId,
-                    title = if (message.direction == MessageDirection.OUTBOUND) "我" else contact?.nickname?.ifBlank { message.senderPeerId }
-                        ?: message.senderPeerId,
-                    subtitle = when (renderType) {
-                        AttachmentRenderType.IMAGE -> "图片"
-                        AttachmentRenderType.VIDEO -> "视频"
-                        AttachmentRenderType.AUDIO -> "语音"
-                        AttachmentRenderType.FILE -> message.mimeType ?: "文件"
-                        AttachmentRenderType.SYSTEM -> message.msgType
-                        AttachmentRenderType.TEXT -> ""
+                    title = if (message.direction == MessageDirection.OUTBOUND) {
+                        appContext.getString(R.string.sender_me)
+                    } else {
+                        contact?.nickname?.ifBlank { message.senderPeerId }
+                            ?: message.senderPeerId
                     },
+                    subtitle = attachmentSubtitle(appContext.resources, renderType, message.mimeType, message.msgType),
                     isMine = message.direction == MessageDirection.OUTBOUND,
                     renderType = renderType,
                     text = message.plaintext.orEmpty(),
@@ -199,7 +199,7 @@ class DirectChatViewModel @Inject constructor(
 
     fun download(message: ChatMessageUiModel) {
         val url = message.remoteUrl ?: return
-        val fileName = message.fileName ?: "meshchat-attachment"
+        val fileName = message.fileName ?: appContext.getString(R.string.default_attachment_filename)
         viewModelScope.launch {
             runCatching {
                 when (
@@ -209,7 +209,7 @@ class DirectChatViewModel @Inject constructor(
                         withContext(Dispatchers.Main) {
                             Toast.makeText(
                                 appContext,
-                                "已保存到「下载/MeshChat」",
+                                appContext.getString(R.string.toast_saved_to_downloads),
                                 Toast.LENGTH_SHORT,
                             ).show()
                             if (fileName.endsWith(".apk", ignoreCase = true)) {
@@ -221,7 +221,7 @@ class DirectChatViewModel @Inject constructor(
                         withContext(Dispatchers.Main) {
                             Toast.makeText(
                                 appContext,
-                                "已加入系统下载，请在通知栏或「下载」中查看",
+                                appContext.getString(R.string.toast_queued_system_download),
                                 Toast.LENGTH_LONG,
                             ).show()
                         }
@@ -231,7 +231,7 @@ class DirectChatViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
                         appContext,
-                        e.message ?: "下载失败",
+                        e.message ?: appContext.getString(R.string.error_download_failed),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }
@@ -246,7 +246,7 @@ class DirectChatViewModel @Inject constructor(
     ) {
         val destinations = selectedTargets.mapNotNull { it.toForwardDestination() }
         if (destinations.isEmpty()) {
-            onDone(false, "未选择会话")
+            onDone(false, appContext.getString(R.string.forward_no_target))
             return
         }
         viewModelScope.launch {
@@ -262,7 +262,7 @@ class DirectChatViewModel @Inject constructor(
             }.onSuccess {
                 onDone(true, null)
             }.onFailure { e ->
-                onDone(false, e.message ?: "转发失败")
+                onDone(false, e.message ?: appContext.getString(R.string.error_forward_failed))
             }
         }
     }
@@ -283,6 +283,7 @@ fun DirectChatScreen(
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val resources = context.resources
     val lifecycleOwner = LocalLifecycleOwner.current
     var messageToForward by remember { mutableStateOf<ChatMessageUiModel?>(null) }
     val voiceRecorder = remember { VoiceRecorder(context) }
@@ -303,7 +304,7 @@ fun DirectChatScreen(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
         if (!granted) {
-            Toast.makeText(context, "请开启麦克风权限", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.mic_permission_denied), Toast.LENGTH_SHORT).show()
         }
     }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -342,7 +343,7 @@ fun DirectChatScreen(
             file?.let { viewModel.sendAttachment(it) }
         }
         voiceRecorder.setOnErrorListener {
-            interruptVoiceSession("录音失败，请重试")
+            interruptVoiceSession(context.getString(R.string.voice_record_failed_retry))
         }
         onDispose {
             voiceRecorder.setOnMaxDurationReachedListener(null)
@@ -354,7 +355,7 @@ fun DirectChatScreen(
         val obs = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_PAUSE || event == Lifecycle.Event.ON_STOP) {
                 if (voiceOverlayVisible || voiceRecorder.isRecording) {
-                    interruptVoiceSession("录音已中断")
+                    interruptVoiceSession(context.getString(R.string.recording_interrupted))
                 }
             }
         }
@@ -444,9 +445,13 @@ fun DirectChatScreen(
                 if (msg != null) {
                     viewModel.forwardMessage(msg, rows) { ok, err ->
                         if (ok) {
-                            Toast.makeText(context, "已转发", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.toast_forwarded), Toast.LENGTH_SHORT).show()
                         } else {
-                            Toast.makeText(context, err ?: "转发失败", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                err ?: context.getString(R.string.error_forward_failed),
+                                Toast.LENGTH_SHORT,
+                            ).show()
                         }
                     }
                 }
@@ -463,7 +468,7 @@ fun DirectChatScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             IconButton(onClick = onBackClick) {
-                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.cd_back))
             }
             AvatarImage(
                 title = uiState.title.ifBlank { "?" },
@@ -477,7 +482,7 @@ fun DirectChatScreen(
             )
             // 顶栏主标题：对方昵称；无昵称时退回 peer_id /「单聊」；保留时长靠右
             Text(
-                text = uiState.title.ifBlank { uiState.peerId.ifBlank { "单聊" } },
+                text = uiState.title.ifBlank { uiState.peerId.ifBlank { stringResource(R.string.direct_chat_default_title) } },
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
@@ -487,7 +492,10 @@ fun DirectChatScreen(
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = "保留：" + formatRetentionDisplayShort(uiState.retentionMinutes),
+                text = stringResource(
+                    R.string.retention_label_prefix,
+                    formatRetentionDisplayShort(resources, uiState.retentionMinutes),
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = Color(0xFF3B5778),
                 maxLines = 1,
@@ -511,7 +519,10 @@ fun DirectChatScreen(
                 .fillMaxWidth(),
         ) {
             if (uiState.messages.isEmpty()) {
-                EmptyState(title = "暂无消息", body = "发送一条文本或文件消息开始聊天。")
+                EmptyState(
+                    title = stringResource(R.string.empty_direct_messages_title),
+                    body = stringResource(R.string.empty_direct_messages_body),
+                )
             } else {
                 LazyColumn(
                     state = listState,
@@ -523,16 +534,22 @@ fun DirectChatScreen(
                             showSenderName = false,
                             onOpenAttachment = { message ->
                                 when (message.renderType) {
-                                    AttachmentRenderType.IMAGE -> message.remoteUrl?.let { onOpenImage(it, message.fileName ?: "图片") }
-                                    AttachmentRenderType.VIDEO -> message.remoteUrl?.let { onOpenVideo(it, message.fileName ?: "视频") }
-                                    AttachmentRenderType.AUDIO -> message.remoteUrl?.let { onOpenAudio(it, message.fileName ?: "音频") }
+                                    AttachmentRenderType.IMAGE -> message.remoteUrl?.let {
+                                        onOpenImage(it, message.fileName ?: context.getString(R.string.fallback_title_image))
+                                    }
+                                    AttachmentRenderType.VIDEO -> message.remoteUrl?.let {
+                                        onOpenVideo(it, message.fileName ?: context.getString(R.string.fallback_title_video))
+                                    }
+                                    AttachmentRenderType.AUDIO -> message.remoteUrl?.let {
+                                        onOpenAudio(it, message.fileName ?: context.getString(R.string.fallback_title_audio))
+                                    }
                                     AttachmentRenderType.FILE -> viewModel.download(message)
                                     else -> Unit
                                 }
                             },
                             onCopy = { m ->
                                 copyChatMessageToClipboard(context, m)
-                                Toast.makeText(context, "已复制", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.toast_copied), Toast.LENGTH_SHORT).show()
                             },
                             onForward = { messageToForward = it },
                             onRevoke = { viewModel.revoke(it.id) },
@@ -550,7 +567,7 @@ fun DirectChatScreen(
                         .align(Alignment.BottomEnd)
                         .padding(end = 16.dp, bottom = 12.dp),
                 ) {
-                    Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "最新")
+                    Icon(Icons.Filled.KeyboardArrowDown, contentDescription = stringResource(R.string.cd_scroll_latest))
                 }
             }
             if (voiceOverlayVisible) {
@@ -593,7 +610,7 @@ fun DirectChatScreen(
                     onLongPressStarted = {
                         if (!hasMicPermission()) {
                             permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                            Toast.makeText(context, "请开启麦克风权限", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.mic_permission_denied), Toast.LENGTH_SHORT).show()
                             return@HoldToTalkButton
                         }
                         runCatching {
@@ -607,7 +624,7 @@ fun DirectChatScreen(
                         }.onFailure {
                             voiceRecordingStarted = false
                             voiceOverlayVisible = false
-                            Toast.makeText(context, "录音失败，请重试", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.voice_record_failed_retry), Toast.LENGTH_SHORT).show()
                         }
                     },
                     onCancelZoneChanged = { voiceWillCancel = it },
@@ -620,17 +637,17 @@ fun DirectChatScreen(
                         val durationMs = (SystemClock.elapsedRealtime() - voiceRecordStartElapsed).coerceAtLeast(0L)
                         if (cancelledBySwipe) {
                             voiceRecorder.cancel()
-                            Toast.makeText(context, "已取消录音", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.voice_record_cancelled), Toast.LENGTH_SHORT).show()
                             return@HoldToTalkButton
                         }
                         val file = voiceRecorder.stop()
                         when {
                             durationMs < 1000L -> {
                                 file?.delete()
-                                Toast.makeText(context, "录音时间太短", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.voice_too_short), Toast.LENGTH_SHORT).show()
                             }
                             file != null -> viewModel.sendAttachment(file)
-                            else -> Toast.makeText(context, "录音失败，请重试", Toast.LENGTH_SHORT).show()
+                            else -> Toast.makeText(context, context.getString(R.string.voice_record_failed_retry), Toast.LENGTH_SHORT).show()
                         }
                     },
                 )

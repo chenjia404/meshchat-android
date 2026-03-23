@@ -23,7 +23,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.github.com.chenjia404.meshchat.R
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.com.chenjia404.meshchat.core.ui.AvatarImage
@@ -98,7 +100,10 @@ fun ForwardTargetPickerDialog(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(row.title, style = MaterialTheme.typography.bodyLarge)
                                 Text(
-                                    row.subtitle,
+                                    stringResource(
+                                        if (row.isGroup) R.string.forward_target_group
+                                        else R.string.forward_target_direct,
+                                    ),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -116,12 +121,12 @@ fun ForwardTargetPickerDialog(
                 },
                 enabled = selected.isNotEmpty(),
             ) {
-                Text("转发")
+                Text(stringResource(R.string.forward))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("取消")
+                Text(stringResource(R.string.cancel))
             }
         },
     )

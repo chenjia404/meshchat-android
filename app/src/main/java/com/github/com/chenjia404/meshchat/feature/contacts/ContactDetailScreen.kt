@@ -21,7 +21,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.github.com.chenjia404.meshchat.R
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material.icons.Icons
@@ -58,7 +60,7 @@ fun ContactDetailScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             IconButton(onClick = onBackClick) {
-                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.cd_back))
             }
             AvatarImage(item.title, item.avatarUrl, Modifier.size(40.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -74,7 +76,7 @@ fun ContactDetailScreen(
             OutlinedTextField(
                 value = item.peerId,
                 onValueChange = {},
-                label = { Text("peer_id") },
+                label = { Text(stringResource(R.string.label_peer_id)) },
                 readOnly = true,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -118,7 +120,7 @@ fun ContactDetailScreen(
             Button(
                 onClick = { viewModel.deleteContact(item.peerId) },
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text("删除") }
+            ) { Text(stringResource(R.string.delete)) }
         }
     }
 }

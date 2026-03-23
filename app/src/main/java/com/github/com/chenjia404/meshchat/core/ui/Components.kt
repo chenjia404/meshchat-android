@@ -39,6 +39,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.github.com.chenjia404.meshchat.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -115,12 +117,13 @@ private fun ChatMessageMetaRow(
     message: ChatMessageUiModel,
     showSenderName: Boolean,
 ) {
+    val resources = LocalContext.current.resources
     val timeText = formatChatMessageLineTime(message.timestamp)
     val timeStyle = MaterialTheme.typography.labelSmall.copy(
         color = ChatMetaGray,
         fontSize = 11.sp,
     )
-    val stateLabel = if (message.isMine) formatMessageStateLabel(message.state) else ""
+    val stateLabel = if (message.isMine) formatMessageStateLabel(resources, message.state) else ""
     when (message.renderType) {
         AttachmentRenderType.SYSTEM -> {
             Row(
@@ -293,14 +296,14 @@ fun ChatMessageBubble(
                     onDismissRequest = { menuExpanded = false },
                 ) {
                     DropdownMenuItem(
-                        text = { Text("复制") },
+                        text = { Text(stringResource(R.string.action_copy)) },
                         onClick = {
                             menuExpanded = false
                             onCopy(message)
                         },
                     )
                     DropdownMenuItem(
-                        text = { Text("转发") },
+                        text = { Text(stringResource(R.string.action_forward)) },
                         onClick = {
                             menuExpanded = false
                             onForward(message)
@@ -308,7 +311,7 @@ fun ChatMessageBubble(
                     )
                     if (message.isMine) {
                         DropdownMenuItem(
-                            text = { Text("撤回") },
+                            text = { Text(stringResource(R.string.action_revoke)) },
                             onClick = {
                                 menuExpanded = false
                                 onRevoke(message)

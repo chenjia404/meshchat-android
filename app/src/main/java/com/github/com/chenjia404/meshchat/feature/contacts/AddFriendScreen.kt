@@ -21,7 +21,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.github.com.chenjia404.meshchat.R
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.material3.MaterialTheme
 
@@ -41,11 +43,11 @@ fun AddFriendScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBackClick) {
-                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.cd_back))
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text("添加好友", style = MaterialTheme.typography.titleLarge)
-                Text("输入对方 PeerID，并发送好友请求", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.add_friend_title), style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.add_friend_subtitle), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -54,14 +56,14 @@ fun AddFriendScreen(
             OutlinedTextField(
                 value = peerId,
                 onValueChange = { peerId = it },
-                label = { Text("目标 PeerID") },
+                label = { Text(stringResource(R.string.label_target_peer_id)) },
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = introText,
                 onValueChange = { introText = it },
-                label = { Text("附言") },
+                label = { Text(stringResource(R.string.label_intro)) },
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -77,7 +79,7 @@ fun AddFriendScreen(
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("发送请求")
+                Text(stringResource(R.string.send_friend_request))
             }
         }
     }

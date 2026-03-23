@@ -30,7 +30,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.github.com.chenjia404.meshchat.R
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.com.chenjia404.meshchat.core.ui.AvatarImage
@@ -59,11 +61,11 @@ fun CreateGroupScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBackClick) {
-                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.cd_back))
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text("创建群聊", style = MaterialTheme.typography.titleLarge)
-                Text("输入标题并从好友中多选成员", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.create_group_title), style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.create_group_subtitle), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -71,11 +73,11 @@ fun CreateGroupScreen(
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("群组标题") },
+                label = { Text(stringResource(R.string.label_group_title)) },
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(modifier = Modifier.height(12.dp))
-            Text("选择成员", style = MaterialTheme.typography.titleSmall)
+            Text(stringResource(R.string.select_members), style = MaterialTheme.typography.titleSmall)
             Spacer(modifier = Modifier.height(8.dp))
         }
         if (contacts.isEmpty()) {
@@ -131,11 +133,11 @@ fun CreateGroupScreen(
         Button(
             onClick = {
                 if (title.isBlank()) {
-                    Toast.makeText(context, "请输入群组标题", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.toast_enter_group_title), Toast.LENGTH_SHORT).show()
                     return@Button
                 }
                 if (selectedPeerIds.isEmpty()) {
-                    Toast.makeText(context, "请至少选择一名成员", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.toast_select_at_least_one), Toast.LENGTH_SHORT).show()
                     return@Button
                 }
                 viewModel.createGroup(title, selectedPeerIds.toList())
@@ -146,7 +148,7 @@ fun CreateGroupScreen(
                 .fillMaxWidth()
                 .padding(16.dp),
         ) {
-            Text("创建群组")
+            Text(stringResource(R.string.create_group_button))
         }
     }
 }

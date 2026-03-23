@@ -14,7 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.github.com.chenjia404.meshchat.R
 
 private val CancelThresholdDp = 72.dp
 
@@ -81,7 +83,7 @@ fun HoldToTalkButton(
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "按住说话",
+            text = stringResource(R.string.hold_to_talk),
             style = MaterialTheme.typography.bodyLarge,
             color = if (enabled) MaterialTheme.colorScheme.onSurface
             else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),

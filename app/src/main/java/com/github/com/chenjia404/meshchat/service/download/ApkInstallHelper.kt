@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
+import com.github.com.chenjia404.meshchat.R
 
 /**
  * 使用已下载 APK 的 [Uri]（content:// 或 FileProvider content://）调起系统安装界面。
@@ -16,7 +17,7 @@ object ApkInstallHelper {
         val app = context.applicationContext
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (!app.packageManager.canRequestPackageInstalls()) {
-                Toast.makeText(app, "请在设置中允许「安装未知应用」后再试", Toast.LENGTH_LONG).show()
+                Toast.makeText(app, app.getString(R.string.install_unknown_apps_hint), Toast.LENGTH_LONG).show()
                 runCatching {
                     val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
                         data = Uri.parse("package:${app.packageName}")
@@ -35,9 +36,9 @@ object ApkInstallHelper {
         try {
             app.startActivity(intent)
         } catch (_: ActivityNotFoundException) {
-            Toast.makeText(app, "无法打开安装程序", Toast.LENGTH_SHORT).show()
+            Toast.makeText(app, app.getString(R.string.cannot_open_installer), Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
-            Toast.makeText(app, e.message ?: "无法安装", Toast.LENGTH_SHORT).show()
+            Toast.makeText(app, e.message ?: app.getString(R.string.install_failed), Toast.LENGTH_SHORT).show()
         }
     }
 }

@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.PlatformTextStyle
@@ -39,6 +40,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.github.com.chenjia404.meshchat.core.ui.AvatarImage
 import com.github.com.chenjia404.meshchat.core.ui.EmptyState
+import androidx.compose.ui.res.stringResource
+import com.github.com.chenjia404.meshchat.R
 import com.github.com.chenjia404.meshchat.core.util.formatConversationListRelativeTime
 import com.github.com.chenjia404.meshchat.core.util.renderConversationPreview
 import com.github.com.chenjia404.meshchat.domain.repository.ContactsRepository
@@ -56,10 +59,14 @@ import kotlinx.coroutines.flow.stateIn
 data class ChatListItemUiModel(
     val conversationId: String,
     val title: String,
-    val preview: String,
+    val latestMsgType: String?,
+    val latestPlaintext: String?,
+    val latestMimeType: String?,
+    val latestFileName: String?,
+    val bioFallback: String,
+    val lastActivityAtRaw: String?,
     val avatarUrl: String?,
     val unreadCount: Int,
-    val timestamp: String,
 )
 
 data class ChatListUiState(
@@ -140,17 +147,16 @@ class ChatListViewModel @Inject constructor(
                         ChatListItemUiModel(
                             conversationId = conversation.conversationId,
                             title = title,
-                            preview = renderConversationPreview(
-                                msgType = latestMessage?.msgType,
-                                plaintext = latestMessage?.plaintext,
-                                mimeType = latestMessage?.mimeType,
-                                fileName = latestMessage?.fileName,
-                            ).ifBlank { contact?.bio.orEmpty() },
+                            latestMsgType = latestMessage?.msgType,
+                            latestPlaintext = latestMessage?.plaintext,
+                            latestMimeType = latestMessage?.mimeType,
+                            latestFileName = latestMessage?.fileName,
+                            bioFallback = contact?.bio.orEmpty(),
+                            lastActivityAtRaw = latestMessage?.createdAt
+                                ?: conversation.lastMessageAt
+                                ?: conversation.updatedAt,
                             avatarUrl = attachmentUrlBuilder.avatarUrl(contact?.avatar),
                             unreadCount = conversation.unreadCount,
-                            timestamp = formatConversationListRelativeTime(
-                                latestMessage?.createdAt ?: conversation.lastMessageAt ?: conversation.updatedAt,
-                            ),
                         )
                     },
                 )
@@ -165,16 +171,25 @@ fun ChatListScreen(
     onConversationClick: (conversationId: String, entryUnread: Int) -> Unit,
     viewModel: ChatListViewModel = hiltViewModel(),
 ) {
+    val resources = LocalContext.current.resources
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     if (uiState.items.isEmpty()) {
         EmptyState(
-            title = "还没有单聊会话",
-            body = "先在联系人页发送好友请求，接受后这里会出现会话。",
+            title = stringResource(R.string.empty_chat_list_title),
+            body = stringResource(R.string.empty_chat_list_body),
         )
         return
     }
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         itemsIndexed(uiState.items, key = { _, item -> item.conversationId }) { index, item ->
+            val previewText = renderConversationPreview(
+                resources,
+                item.latestMsgType,
+                item.latestPlaintext,
+                item.latestMimeType,
+                item.latestFileName,
+            ).ifBlank { item.bioFallback }
+            val timeText = formatConversationListRelativeTime(resources, item.lastActivityAtRaw)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -204,7 +219,7 @@ fun ChatListScreen(
                             modifier = Modifier.weight(1f).padding(end = 8.dp),
                         )
                         Text(
-                            item.timestamp,
+                            timeText,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -216,7 +231,7 @@ fun ChatListScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            item.preview.ifBlank { " " },
+                            text = if (previewText.isBlank()) " " else previewText,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,

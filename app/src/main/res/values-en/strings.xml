@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MeshChat</string>
+
+    <string name="cd_back">Back</string>
+    <string name="cd_add">Add</string>
+    <string name="cd_attach">Attachment</string>
+    <string name="cd_scroll_latest">Latest messages</string>
+    <string name="cd_play">Play</string>
+    <string name="cd_pause">Pause</string>
+    <string name="cd_switch_to_voice">Switch to voice</string>
+    <string name="cd_switch_to_keyboard">Switch to keyboard</string>
+
+    <string name="nav_chat_list">Chats</string>
+    <string name="nav_contacts">Contacts</string>
+    <string name="nav_groups">Groups</string>
+    <string name="nav_settings">Settings</string>
+
+    <string name="empty_chat_list_title">No direct chats yet</string>
+    <string name="empty_chat_list_body">Send a friend request on the Contacts tab. After it is accepted, a chat will appear here.</string>
+
+    <string name="friend_requests_title">Friend requests</string>
+    <string name="contacts_section_title">Contacts</string>
+    <string name="contacts_add_friend">Add friend</string>
+    <string name="contacts_create_group">Create group</string>
+    <string name="empty_friend_requests_title">No friend requests</string>
+    <string name="empty_friend_requests_body">When new friend_request events arrive, they will show up here.</string>
+    <string name="empty_contacts_title">No contacts</string>
+    <string name="empty_contacts_body">After your request is accepted, contacts appear here.</string>
+    <string name="accept">Accept</string>
+    <string name="reject">Reject</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm">OK</string>
+    <string name="toast_friend_request_sent">Friend request sent</string>
+    <string name="toast_accepted">Accepted</string>
+
+    <string name="error_network_timeout">Connection timed out. Check network or server.</string>
+    <string name="error_unknown_host">Cannot resolve server. Check the base URL in settings.</string>
+    <string name="error_request_failed">Request failed</string>
+
+    <string name="add_friend_title">Add friend</string>
+    <string name="add_friend_subtitle">Enter the other party\'s PeerID and send a request.</string>
+    <string name="label_target_peer_id">Target PeerID</string>
+    <string name="label_intro">Message</string>
+    <string name="send_friend_request">Send request</string>
+
+    <string name="create_group_title">Create group</string>
+    <string name="create_group_subtitle">Enter a title and select members from friends.</string>
+    <string name="label_group_title">Group title</string>
+    <string name="select_members">Members</string>
+    <string name="empty_friends_create_group_title">No friends</string>
+    <string name="empty_friends_create_group_body">Add contacts first, then you can select members here.</string>
+    <string name="toast_enter_group_title">Please enter a group title</string>
+    <string name="toast_select_at_least_one">Select at least one member</string>
+    <string name="create_group_button">Create group</string>
+
+    <string name="section_groups_title">Groups</string>
+    <string name="empty_groups_title">No groups</string>
+    <string name="empty_groups_body">Create a group to see it listed here.</string>
+    <string name="group_subtitle_format">%1$s · %2$d members</string>
+
+    <string name="loading_contact_title">Loading</string>
+    <string name="loading_contact_body">Syncing contact info…</string>
+    <string name="contact_not_found_title">Contact not found</string>
+    <string name="contact_not_found_body">It may have been removed or the PeerID is wrong.</string>
+    <string name="profile_section_title">Profile</string>
+    <string name="label_peer_id">peer_id</string>
+    <string name="copy_peer_id">Copy peer_id</string>
+    <string name="chat">Chat</string>
+    <string name="chat_no_conversation">Chat (no conversation yet)</string>
+    <string name="unblock">Unblock</string>
+    <string name="block">Block</string>
+    <string name="delete">Delete</string>
+
+    <string name="settings_profile_title">Profile</string>
+    <string name="label_nickname">Nickname</string>
+    <string name="label_bio">Bio</string>
+    <string name="update_avatar">Update avatar</string>
+    <string name="save_profile">Save</string>
+    <string name="settings_avatar_fallback_me">Me</string>
+
+    <string name="group_short_name">Group</string>
+    <string name="group_chat_title">Group chat</string>
+    <string name="group_chat_subtitle_tagline">meshproxy group chat</string>
+    <string name="label_sync_peer_id">Sync from PeerID</string>
+    <string name="group_sync_button">Sync group</string>
+    <string name="empty_group_messages_title">No messages</string>
+    <string name="empty_group_messages_body">Send a text or file to start the group chat.</string>
+    <string name="attach">Attach</string>
+    <string name="input_group_message">Group message</string>
+    <string name="send">Send</string>
+
+    <string name="direct_chat_default_title">Direct chat</string>
+    <string name="retention_label_prefix">Retention: %1$s</string>
+    <string name="empty_direct_messages_title">No messages</string>
+    <string name="empty_direct_messages_body">Send a text or file to start chatting.</string>
+    <string name="toast_copied">Copied</string>
+    <string name="toast_forwarded">Forwarded</string>
+    <string name="error_forward_failed">Forward failed</string>
+    <string name="sender_me">Me</string>
+
+    <string name="toast_saved_to_downloads">Saved to Download/MeshChat</string>
+    <string name="toast_queued_system_download">Added to system download. Check notifications or Downloads.</string>
+    <string name="error_download_failed">Download failed</string>
+
+    <string name="forward_no_target">No chat selected</string>
+    <string name="forward_to_title">Forward to</string>
+    <string name="forward_empty_targets_hint">No other chats. Start a direct chat or join a group first.</string>
+    <string name="forward_target_direct">Direct</string>
+    <string name="forward_target_group">Group</string>
+    <string name="forward">Forward</string>
+
+    <string name="voice_title_recording">Recording…</string>
+    <string name="voice_title_cancel">Release to cancel</string>
+    <string name="voice_hint_swipe_cancel">Swipe up to cancel, release to send</string>
+    <string name="hold_to_talk">Hold to talk</string>
+    <string name="voice_record_failed_retry">Recording failed. Try again.</string>
+    <string name="voice_record_cancelled">Recording cancelled</string>
+    <string name="voice_too_short">Recording too short</string>
+    <string name="recording_interrupted">Recording interrupted</string>
+    <string name="mic_permission_denied">Please allow microphone access</string>
+    <string name="input_message_hint">Message</string>
+
+    <string name="retention_dialog_title">Retention</string>
+    <string name="retention_time_unit">Time unit</string>
+    <string name="retention_quantity">Amount</string>
+    <string name="retention_placeholder">Positive integer; 0 means unlimited</string>
+    <string name="retention_hint_wait_input">Enter an amount to see minutes</string>
+    <string name="retention_hint_invalid">Invalid value</string>
+    <string name="retention_hint_too_large">Too many minutes; use a smaller value</string>
+    <string name="retention_hint_approx_minutes">About %1$d minutes</string>
+    <string name="toast_enter_quantity">Enter an amount</string>
+    <string name="toast_invalid_quantity">Invalid amount</string>
+
+    <string name="retention_unlimited">Unlimited</string>
+    <string name="retention_display_months">%d mo</string>
+    <string name="retention_display_weeks">%d wk</string>
+    <string name="retention_display_days">%d d</string>
+    <string name="retention_display_hours">%d h</string>
+    <string name="retention_display_minutes">%d min</string>
+
+    <string name="retention_unit_minute">Minutes</string>
+    <string name="retention_unit_hour">Hours</string>
+    <string name="retention_unit_day">Days</string>
+    <string name="retention_unit_week">Weeks</string>
+    <string name="retention_unit_month">Months (30 days)</string>
+
+    <string name="retention_no_auto_delete">No auto-delete</string>
+    <string name="retention_days_part">%1$d d </string>
+    <string name="retention_hours_part">%1$d h </string>
+    <string name="retention_minutes_part">%1$d min</string>
+
+    <string name="time_just_now">Just now</string>
+    <string name="time_minutes_ago">%d min ago</string>
+    <string name="time_hours_ago">%d h ago</string>
+    <string name="time_days_ago">%d d ago</string>
+    <string name="time_months_ago">%d mo ago</string>
+    <string name="time_years_ago">%d y ago</string>
+
+    <string name="preview_image">[Image]</string>
+    <string name="preview_video">[Video]</string>
+    <string name="preview_voice">[Voice]</string>
+    <string name="preview_file">[File]</string>
+    <string name="preview_file_named">[File] %1$s</string>
+
+    <string name="attachment_type_image">Image</string>
+    <string name="attachment_type_video">Video</string>
+    <string name="attachment_type_audio">Voice</string>
+    <string name="attachment_type_file">File</string>
+    <string name="attachment_generic">Attachment</string>
+
+    <string name="fallback_title_image">Image</string>
+    <string name="fallback_title_video">Video</string>
+    <string name="fallback_title_audio">Audio</string>
+
+    <string name="message_state_pending">Queued</string>
+    <string name="message_state_sending">Sending</string>
+    <string name="message_state_sent">Sent</string>
+    <string name="message_state_transport">Sent to transport</string>
+    <string name="message_state_delivered">Delivered</string>
+    <string name="message_state_read">Read</string>
+    <string name="message_state_failed">Failed</string>
+    <string name="message_state_revoked">Revoked</string>
+    <string name="message_state_delivered_hint">Delivered</string>
+
+    <string name="action_copy">Copy</string>
+    <string name="action_forward">Forward</string>
+    <string name="action_revoke">Revoke</string>
+
+    <string name="update_available_title">Update available</string>
+    <string name="update_available_body">Current version: %1$s\nLatest version: %2$s\n\nOpen GitHub to download the APK?</string>
+    <string name="update_now">Update</string>
+    <string name="update_later">Later</string>
+
+    <string name="install_unknown_apps_hint">Allow installing unknown apps in Settings, then try again.</string>
+    <string name="cannot_open_installer">Cannot open installer</string>
+    <string name="install_failed">Install failed</string>
+
+    <string name="default_attachment_filename">meshchat-attachment</string>
+</resources>

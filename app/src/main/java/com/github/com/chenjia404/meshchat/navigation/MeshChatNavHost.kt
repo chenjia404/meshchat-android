@@ -22,6 +22,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.github.com.chenjia404.meshchat.R
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.com.chenjia404.meshchat.feature.appupdate.AppUpdateViewModel
@@ -63,10 +65,10 @@ fun MeshChatNavHost() {
         appUpdateViewModel.checkForAppUpdate(context)
     }
     val destinations = listOf(
-        BottomDestination("chat_list", "会话") { Icon(Icons.Outlined.ChatBubbleOutline, null) },
-        BottomDestination("contacts", "联系人") { Icon(Icons.Outlined.PersonOutline, null) },
-        BottomDestination("groups", "群组") { Icon(Icons.Outlined.Groups, null) },
-        BottomDestination("settings", "设置") { Icon(Icons.Outlined.Settings, null) },
+        BottomDestination("chat_list", stringResource(R.string.nav_chat_list)) { Icon(Icons.Outlined.ChatBubbleOutline, null) },
+        BottomDestination("contacts", stringResource(R.string.nav_contacts)) { Icon(Icons.Outlined.PersonOutline, null) },
+        BottomDestination("groups", stringResource(R.string.nav_groups)) { Icon(Icons.Outlined.Groups, null) },
+        BottomDestination("settings", stringResource(R.string.nav_settings)) { Icon(Icons.Outlined.Settings, null) },
     )
     val fullScreenRoutes = setOf(
         "direct_chat/{conversationId}/{entryUnread}",
@@ -247,11 +249,14 @@ fun MeshChatNavHost() {
     appUpdateInfo?.let { info ->
         AlertDialog(
             onDismissRequest = { appUpdateViewModel.dismissAppUpdatePrompt() },
-            title = { Text("发现新版本") },
+            title = { Text(stringResource(R.string.update_available_title)) },
             text = {
                 Text(
-                    "当前版本：${info.currentVersion}\n" +
-                        "最新版本：${info.latestVersion}\n\n是否前往 GitHub 下载安装包？",
+                    stringResource(
+                        R.string.update_available_body,
+                        info.currentVersion,
+                        info.latestVersion,
+                    ),
                 )
             },
             confirmButton = {
@@ -266,12 +271,12 @@ fun MeshChatNavHost() {
                         appUpdateViewModel.dismissAppUpdatePrompt()
                     },
                 ) {
-                    Text("立即更新")
+                    Text(stringResource(R.string.update_now))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { appUpdateViewModel.dismissAppUpdatePrompt() }) {
-                    Text("稍后")
+                    Text(stringResource(R.string.update_later))
                 }
             },
         )

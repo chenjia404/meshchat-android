@@ -22,7 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.github.com.chenjia404.meshchat.R
 
 /**
  * 聊天页底部输入条：文字/语音模式切换 + 输入区 + 附件 + 发送（Voice.md 4）
@@ -62,7 +64,7 @@ fun DirectChatInputBar(
                     onValueChange = onTextChange,
                     modifier = Modifier.weight(1f),
                     enabled = !voiceOverlayVisible,
-                    placeholder = { Text("输入消息", color = Color(0xFF9C9DA0)) },
+                    placeholder = { Text(stringResource(R.string.input_message_hint), color = Color(0xFF9C9DA0)) },
                     singleLine = false,
                     maxLines = 6,
                     colors = TextFieldDefaults.colors(
@@ -86,7 +88,7 @@ fun DirectChatInputBar(
             onClick = onPickAttachment,
             enabled = !voiceOverlayVisible,
         ) {
-            Icon(Icons.Outlined.AttachFile, contentDescription = "附件")
+            Icon(Icons.Outlined.AttachFile, contentDescription = stringResource(R.string.cd_attach))
         }
         Button(
             onClick = onSendText,
@@ -100,7 +102,7 @@ fun DirectChatInputBar(
             ),
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
         ) {
-            Text("发送")
+            Text(stringResource(R.string.send))
         }
     }
 }

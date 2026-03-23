@@ -30,8 +30,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.com.chenjia404.meshchat.R
 import com.github.com.chenjia404.meshchat.core.util.loadAudioDurationSecondsFromUrl
 import com.github.com.chenjia404.meshchat.service.audio.ChatVoiceInlinePlayer
 import kotlinx.coroutines.Dispatchers
@@ -81,7 +83,7 @@ fun ChatVoiceMessageBar(
         ) {
             Icon(
                 imageVector = if (playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                contentDescription = if (playing) "暂停" else "播放",
+                contentDescription = if (playing) stringResource(R.string.cd_pause) else stringResource(R.string.cd_play),
                 tint = onBubble,
                 modifier = Modifier.size(22.dp),
             )

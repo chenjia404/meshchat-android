@@ -18,7 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.github.com.chenjia404.meshchat.R
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -40,7 +42,8 @@ import kotlinx.coroutines.launch
 data class GroupUiModel(
     val groupId: String,
     val title: String,
-    val subtitle: String,
+    val state: String,
+    val memberCount: Int,
     val avatarUrl: String?,
 )
 
@@ -69,7 +72,8 @@ class GroupsViewModel @Inject constructor(
                     GroupUiModel(
                         groupId = it.groupId,
                         title = it.title,
-                        subtitle = "${it.state} · ${it.memberCount ?: 0}人",
+                        state = it.state,
+                        memberCount = it.memberCount ?: 0,
                         avatarUrl = attachmentUrlBuilder.avatarUrl(it.avatar),
                     )
                 },
@@ -107,11 +111,14 @@ fun GroupsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item {
-            SectionTitle("群组列表")
+            SectionTitle(stringResource(R.string.section_groups_title))
         }
         if (uiState.items.isEmpty()) {
             item {
-                EmptyState(title = "暂无群组", body = "创建一个群组后，这里会展示所有群聊。")
+                EmptyState(
+                    title = stringResource(R.string.empty_groups_title),
+                    body = stringResource(R.string.empty_groups_body),
+                )
             }
         } else {
             items(uiState.items, key = { it.groupId }) { item ->
@@ -134,7 +141,10 @@ fun GroupsScreen(
                         ) {
                             Text(item.title, style = MaterialTheme.typography.titleMedium)
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text(item.subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                stringResource(R.string.group_subtitle_format, item.state, item.memberCount),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
                 }

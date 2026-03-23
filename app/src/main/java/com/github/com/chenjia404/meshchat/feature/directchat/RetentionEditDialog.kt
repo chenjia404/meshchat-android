@@ -22,8 +22,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.github.com.chenjia404.meshchat.R
 import com.github.com.chenjia404.meshchat.core.util.RetentionTimeUnit
 import com.github.com.chenjia404.meshchat.core.util.minutesToPickerPrefill
 import com.github.com.chenjia404.meshchat.core.util.retentionQuantityToMinutes
@@ -55,11 +57,11 @@ fun RetentionEditDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("保留时长") },
+        title = { Text(stringResource(R.string.retention_dialog_title)) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "时间单位",
+                    text = stringResource(R.string.retention_time_unit),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
@@ -70,7 +72,7 @@ fun RetentionEditDialog(
                     onExpandedChange = { unitMenuExpanded = it },
                 ) {
                     OutlinedTextField(
-                        value = unit.label,
+                        value = stringResource(unit.labelRes),
                         onValueChange = {},
                         readOnly = true,
                         modifier = Modifier
@@ -84,7 +86,7 @@ fun RetentionEditDialog(
                     ) {
                         RetentionTimeUnit.entries.forEach { u ->
                             DropdownMenuItem(
-                                text = { Text(u.label) },
+                                text = { Text(stringResource(u.labelRes)) },
                                 onClick = {
                                     unit = u
                                     unitMenuExpanded = false
@@ -95,7 +97,7 @@ fun RetentionEditDialog(
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "数量",
+                    text = stringResource(R.string.retention_quantity),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
@@ -108,7 +110,7 @@ fun RetentionEditDialog(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("正整数，0 表示不限制") },
+                    placeholder = { Text(stringResource(R.string.retention_placeholder)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                 )
@@ -116,12 +118,12 @@ fun RetentionEditDialog(
                 Text(
                     text = when {
                         parsedMinutes == null -> if (valueStr.isBlank()) {
-                            "输入数量后显示折合分钟"
+                            stringResource(R.string.retention_hint_wait_input)
                         } else {
-                            "数值无效"
+                            stringResource(R.string.retention_hint_invalid)
                         }
-                        parsedMinutes > Int.MAX_VALUE -> "折合分钟数过大，请改小"
-                        else -> "折合约 ${parsedMinutes.toInt()} 分钟"
+                        parsedMinutes > Int.MAX_VALUE -> stringResource(R.string.retention_hint_too_large)
+                        else -> stringResource(R.string.retention_hint_approx_minutes, parsedMinutes.toInt())
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -133,28 +135,28 @@ fun RetentionEditDialog(
                 onClick = {
                     val v = valueStr.trim()
                     if (v.isEmpty()) {
-                        Toast.makeText(context, "请输入数量", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.toast_enter_quantity), Toast.LENGTH_SHORT).show()
                         return@TextButton
                     }
                     val num = v.toLongOrNull()
                     if (num == null || num < 0) {
-                        Toast.makeText(context, "数量无效", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.toast_invalid_quantity), Toast.LENGTH_SHORT).show()
                         return@TextButton
                     }
                     val minutes = retentionQuantityToMinutes(num, unit)
                     if (minutes > Int.MAX_VALUE) {
-                        Toast.makeText(context, "折合分钟数过大，请改小", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.retention_hint_too_large), Toast.LENGTH_SHORT).show()
                         return@TextButton
                     }
                     onConfirm(minutes.toInt())
                 },
             ) {
-                Text("确定")
+                Text(stringResource(R.string.confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("取消")
+                Text(stringResource(R.string.cancel))
             }
         },
     )

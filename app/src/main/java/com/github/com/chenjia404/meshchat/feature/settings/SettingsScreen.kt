@@ -25,7 +25,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.github.com.chenjia404.meshchat.R
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -106,10 +108,10 @@ fun SettingsScreen(
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
     ) {
-        Text("个人资料", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.settings_profile_title), style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(12.dp))
         AvatarImage(
-            title = uiState.nickname.ifBlank { uiState.peerId.ifBlank { "我" } },
+            title = uiState.nickname.ifBlank { uiState.peerId.ifBlank { stringResource(R.string.settings_avatar_fallback_me) } },
             avatarUrl = uiState.avatarUrl,
             modifier = Modifier.size(88.dp),
         )
@@ -117,7 +119,7 @@ fun SettingsScreen(
         OutlinedTextField(
             value = uiState.peerId,
             onValueChange = {},
-            label = { Text("peer_id") },
+            label = { Text(stringResource(R.string.label_peer_id)) },
             readOnly = true,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -137,26 +139,26 @@ fun SettingsScreen(
         OutlinedTextField(
             value = nickname,
             onValueChange = { nickname = it },
-            label = { Text("昵称") },
+            label = { Text(stringResource(R.string.label_nickname)) },
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = bio,
             onValueChange = { bio = it },
-            label = { Text("简介") },
+            label = { Text(stringResource(R.string.label_bio)) },
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = { avatarPicker.launch(arrayOf("image/*")) }, modifier = Modifier.fillMaxWidth()) {
-            Text("更新头像")
+            Text(stringResource(R.string.update_avatar))
         }
         Spacer(modifier = Modifier.height(8.dp))
         Button(
             onClick = { viewModel.updateProfile(nickname, bio) },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("保存资料")
+            Text(stringResource(R.string.save_profile))
         }
     }
 }

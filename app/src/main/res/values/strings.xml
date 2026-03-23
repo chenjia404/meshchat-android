@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 默认回退：简体中文（与 values-zh-rCN 一致）。英文见 values-en/strings.xml -->
+<resources>
+    <string name="app_name">MeshChat</string>
+
+    <string name="cd_back">返回</string>
+    <string name="cd_add">添加</string>
+    <string name="cd_attach">附件</string>
+    <string name="cd_scroll_latest">最新消息</string>
+    <string name="cd_play">播放</string>
+    <string name="cd_pause">暂停</string>
+    <string name="cd_switch_to_voice">切换到语音</string>
+    <string name="cd_switch_to_keyboard">切换到文字</string>
+
+    <string name="nav_chat_list">会话</string>
+    <string name="nav_contacts">联系人</string>
+    <string name="nav_groups">群组</string>
+    <string name="nav_settings">设置</string>
+
+    <string name="empty_chat_list_title">还没有单聊会话</string>
+    <string name="empty_chat_list_body">先在联系人页发送好友请求，接受后这里会出现会话。</string>
+
+    <string name="friend_requests_title">好友请求</string>
+    <string name="contacts_section_title">联系人</string>
+    <string name="contacts_add_friend">添加好友</string>
+    <string name="contacts_create_group">创建群聊</string>
+    <string name="empty_friend_requests_title">暂无好友请求</string>
+    <string name="empty_friend_requests_body">收到新的 friend_request 事件后，这里会自动刷新。</string>
+    <string name="empty_contacts_title">暂无联系人</string>
+    <string name="empty_contacts_body">发送请求并被接受后，联系人会显示在这里。</string>
+    <string name="accept">接受</string>
+    <string name="reject">拒绝</string>
+    <string name="cancel">取消</string>
+    <string name="confirm">确定</string>
+    <string name="toast_friend_request_sent">好友请求已发送</string>
+    <string name="toast_accepted">已接受</string>
+
+    <string name="error_network_timeout">连接超时，请检查网络或服务器是否可达</string>
+    <string name="error_unknown_host">无法解析服务器地址，请检查基础 URL 设置</string>
+    <string name="error_request_failed">请求失败</string>
+
+    <string name="add_friend_title">添加好友</string>
+    <string name="add_friend_subtitle">输入对方 PeerID，并发送好友请求</string>
+    <string name="label_target_peer_id">目标 PeerID</string>
+    <string name="label_intro">附言</string>
+    <string name="send_friend_request">发送请求</string>
+
+    <string name="create_group_title">创建群聊</string>
+    <string name="create_group_subtitle">输入标题并从好友中多选成员</string>
+    <string name="label_group_title">群组标题</string>
+    <string name="select_members">选择成员</string>
+    <string name="empty_friends_create_group_title">暂无好友</string>
+    <string name="empty_friends_create_group_body">添加联系人后，可在此多选成员创建群聊。</string>
+    <string name="toast_enter_group_title">请输入群组标题</string>
+    <string name="toast_select_at_least_one">请至少选择一名成员</string>
+    <string name="create_group_button">创建群组</string>
+
+    <string name="section_groups_title">群组列表</string>
+    <string name="empty_groups_title">暂无群组</string>
+    <string name="empty_groups_body">创建一个群组后，这里会展示所有群聊。</string>
+    <string name="group_subtitle_format">%1$s · %2$d 人</string>
+
+    <string name="loading_contact_title">加载中</string>
+    <string name="loading_contact_body">正在同步联系人信息，请稍候。</string>
+    <string name="contact_not_found_title">联系人不存在</string>
+    <string name="contact_not_found_body">可能已被删除或 peerId 不正确。</string>
+    <string name="profile_section_title">个人资料</string>
+    <string name="label_peer_id">peer_id</string>
+    <string name="copy_peer_id">复制 peer_id</string>
+    <string name="chat">聊天</string>
+    <string name="chat_no_conversation">聊天（未建立会话）</string>
+    <string name="unblock">解除封锁</string>
+    <string name="block">封锁</string>
+    <string name="delete">删除</string>
+
+    <string name="settings_profile_title">个人资料</string>
+    <string name="label_nickname">昵称</string>
+    <string name="label_bio">简介</string>
+    <string name="update_avatar">更新头像</string>
+    <string name="save_profile">保存资料</string>
+    <string name="settings_avatar_fallback_me">我</string>
+
+    <string name="group_short_name">群</string>
+    <string name="group_chat_title">群聊</string>
+    <string name="group_chat_subtitle_tagline">meshproxy group chat</string>
+    <string name="label_sync_peer_id">同步来源 PeerID</string>
+    <string name="group_sync_button">群同步</string>
+    <string name="empty_group_messages_title">暂无群消息</string>
+    <string name="empty_group_messages_body">发送一条文本或文件消息开始群聊。</string>
+    <string name="attach">附件</string>
+    <string name="input_group_message">输入群消息</string>
+    <string name="send">发送</string>
+
+    <string name="direct_chat_default_title">单聊</string>
+    <string name="retention_label_prefix">保留：%1$s</string>
+    <string name="empty_direct_messages_title">暂无消息</string>
+    <string name="empty_direct_messages_body">发送一条文本或文件消息开始聊天。</string>
+    <string name="toast_copied">已复制</string>
+    <string name="toast_forwarded">已转发</string>
+    <string name="error_forward_failed">转发失败</string>
+    <string name="sender_me">我</string>
+
+    <string name="toast_saved_to_downloads">已保存到「下载/MeshChat」</string>
+    <string name="toast_queued_system_download">已加入系统下载，请在通知栏或「下载」中查看</string>
+    <string name="error_download_failed">下载失败</string>
+
+    <string name="forward_no_target">未选择会话</string>
+    <string name="forward_to_title">转发到</string>
+    <string name="forward_empty_targets_hint">暂无其他会话，请先创建私聊或加入群聊。</string>
+    <string name="forward_target_direct">私聊</string>
+    <string name="forward_target_group">群聊</string>
+    <string name="forward">转发</string>
+
+    <string name="voice_title_recording">正在录音</string>
+    <string name="voice_title_cancel">松开手指，取消录音</string>
+    <string name="voice_hint_swipe_cancel">上滑取消，松开发送</string>
+    <string name="hold_to_talk">按住说话</string>
+    <string name="voice_record_failed_retry">录音失败，请重试</string>
+    <string name="voice_record_cancelled">已取消录音</string>
+    <string name="voice_too_short">录音时间太短</string>
+    <string name="recording_interrupted">录音已中断</string>
+    <string name="mic_permission_denied">请开启麦克风权限</string>
+    <string name="input_message_hint">输入消息</string>
+
+    <string name="retention_dialog_title">保留时长</string>
+    <string name="retention_time_unit">时间单位</string>
+    <string name="retention_quantity">数量</string>
+    <string name="retention_placeholder">正整数，0 表示不限制</string>
+    <string name="retention_hint_wait_input">输入数量后显示折合分钟</string>
+    <string name="retention_hint_invalid">数值无效</string>
+    <string name="retention_hint_too_large">折合分钟数过大，请改小</string>
+    <string name="retention_hint_approx_minutes">折合约 %1$d 分钟</string>
+    <string name="toast_enter_quantity">请输入数量</string>
+    <string name="toast_invalid_quantity">数量无效</string>
+
+    <string name="retention_unlimited">不限制</string>
+    <string name="retention_display_months">%d 月</string>
+    <string name="retention_display_weeks">%d 周</string>
+    <string name="retention_display_days">%d 天</string>
+    <string name="retention_display_hours">%d 小时</string>
+    <string name="retention_display_minutes">%d 分钟</string>
+
+    <string name="retention_unit_minute">分钟</string>
+    <string name="retention_unit_hour">小时</string>
+    <string name="retention_unit_day">天</string>
+    <string name="retention_unit_week">周</string>
+    <string name="retention_unit_month">月（30 天）</string>
+
+    <string name="retention_no_auto_delete">不自动删除</string>
+    <string name="retention_days_part">%1$d天</string>
+    <string name="retention_hours_part">%1$d小时</string>
+    <string name="retention_minutes_part">%1$d分钟</string>
+
+    <string name="time_just_now">刚刚</string>
+    <string name="time_minutes_ago">%d分钟前</string>
+    <string name="time_hours_ago">%d小时前</string>
+    <string name="time_days_ago">%d天前</string>
+    <string name="time_months_ago">%d个月前</string>
+    <string name="time_years_ago">%d年前</string>
+
+    <string name="preview_image">[图片]</string>
+    <string name="preview_video">[视频]</string>
+    <string name="preview_voice">[语音]</string>
+    <string name="preview_file">[文件]</string>
+    <string name="preview_file_named">[文件] %1$s</string>
+
+    <string name="attachment_type_image">图片</string>
+    <string name="attachment_type_video">视频</string>
+    <string name="attachment_type_audio">语音</string>
+    <string name="attachment_type_file">文件</string>
+    <string name="attachment_generic">附件</string>
+
+    <string name="fallback_title_image">图片</string>
+    <string name="fallback_title_video">视频</string>
+    <string name="fallback_title_audio">音频</string>
+
+    <string name="message_state_pending">排队中</string>
+    <string name="message_state_sending">发送中</string>
+    <string name="message_state_sent">已发送</string>
+    <string name="message_state_transport">已送至传输</string>
+    <string name="message_state_delivered">已送达</string>
+    <string name="message_state_read">已读</string>
+    <string name="message_state_failed">发送失败</string>
+    <string name="message_state_revoked">已撤回</string>
+    <string name="message_state_delivered_hint">已送达</string>
+
+    <string name="action_copy">复制</string>
+    <string name="action_forward">转发</string>
+    <string name="action_revoke">撤回</string>
+
+    <string name="update_available_title">发现新版本</string>
+    <string name="update_available_body">当前版本：%1$s\n最新版本：%2$s\n\n是否前往 GitHub 下载安装包？</string>
+    <string name="update_now">立即更新</string>
+    <string name="update_later">稍后</string>
+
+    <string name="install_unknown_apps_hint">请在设置中允许「安装未知应用」后再试</string>
+    <string name="cannot_open_installer">无法打开安装程序</string>
+    <string name="install_failed">无法安装</string>
+
+    <string name="default_attachment_filename">meshchat-attachment</string>
+</resources>

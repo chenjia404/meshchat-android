@@ -1,5 +1,7 @@
 package com.github.com.chenjia404.meshchat.core.util
 
+import android.content.res.Resources
+import com.github.com.chenjia404.meshchat.R
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -30,10 +32,9 @@ fun formatChatTime(raw: String?): String {
 }
 
 /**
- * 会话列表右侧时间：**单一单位**相对时间（刚刚 / N分钟前 / N小时前 / N天前 / N个月前 / N年前）。
- * 优先用较大粒度；与「当前时刻」比较，使用设备本地时区。
+ * 会话列表右侧时间：**单一单位**相对时间。
  */
-fun formatConversationListRelativeTime(raw: String?): String {
+fun formatConversationListRelativeTime(resources: Resources, raw: String?): String {
     if (raw.isNullOrBlank()) return ""
     val msg = toZonedOnDevice(raw) ?: return raw
     val now = ZonedDateTime.now(ZoneId.systemDefault())
@@ -43,20 +44,20 @@ fun formatConversationListRelativeTime(raw: String?): String {
     val nowLdt = now.toLocalDateTime()
 
     val minutes = ChronoUnit.MINUTES.between(msgLdt, nowLdt)
-    if (minutes < 1L) return "刚刚"
-    if (minutes < 60L) return "${minutes}分钟前"
+    if (minutes < 1L) return resources.getString(R.string.time_just_now)
+    if (minutes < 60L) return resources.getString(R.string.time_minutes_ago, minutes.toInt())
 
     val hours = ChronoUnit.HOURS.between(msgLdt, nowLdt)
-    if (hours < 24L) return "${hours}小时前"
+    if (hours < 24L) return resources.getString(R.string.time_hours_ago, hours.toInt())
 
     val days = ChronoUnit.DAYS.between(msg.toLocalDate(), now.toLocalDate())
-    if (days < 30L) return "${days}天前"
+    if (days < 30L) return resources.getString(R.string.time_days_ago, days.toInt())
 
     val months = ChronoUnit.MONTHS.between(msgLdt, nowLdt)
-    if (months < 12L) return "${months}个月前"
+    if (months < 12L) return resources.getString(R.string.time_months_ago, months.toInt())
 
     val years = ChronoUnit.YEARS.between(msgLdt, nowLdt)
-    return "${years}年前"
+    return resources.getString(R.string.time_years_ago, years.toInt())
 }
 
 /** 私聊气泡下方时间：yyyy-MM-dd HH:mm（设备本地时区） */
@@ -66,25 +67,33 @@ fun formatChatMessageLineTime(raw: String?): String {
     return z.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm", Locale.getDefault()))
 }
 
-fun renderConversationPreview(msgType: String?, plaintext: String?, mimeType: String?, fileName: String?): String {
+fun renderConversationPreview(
+    resources: Resources,
+    msgType: String?,
+    plaintext: String?,
+    mimeType: String?,
+    fileName: String?,
+): String {
     return when (resolveRenderType(msgType.orEmpty(), mimeType, fileName)) {
         AttachmentRenderType.TEXT -> plaintext.orEmpty()
-        AttachmentRenderType.IMAGE -> "[图片]"
-        AttachmentRenderType.VIDEO -> "[视频]"
-        AttachmentRenderType.AUDIO -> "[语音]"
-        AttachmentRenderType.FILE -> fileName?.let { "[文件] $it" } ?: "[文件]"
+        AttachmentRenderType.IMAGE -> resources.getString(R.string.preview_image)
+        AttachmentRenderType.VIDEO -> resources.getString(R.string.preview_video)
+        AttachmentRenderType.AUDIO -> resources.getString(R.string.preview_voice)
+        AttachmentRenderType.FILE ->
+            fileName?.let { resources.getString(R.string.preview_file_named, it) }
+                ?: resources.getString(R.string.preview_file)
         AttachmentRenderType.SYSTEM -> plaintext?.takeIf { it.isNotBlank() } ?: msgType.orEmpty()
     }
 }
 
-fun formatRetentionMinutes(minutes: Int): String {
-    if (minutes <= 0) return "不自动删除"
+fun formatRetentionMinutes(resources: Resources, minutes: Int): String {
+    if (minutes <= 0) return resources.getString(R.string.retention_no_auto_delete)
     val days = minutes / (24 * 60)
     val hours = minutes % (24 * 60) / 60
     val mins = minutes % 60
     return buildString {
-        if (days > 0) append("${days}天")
-        if (hours > 0) append("${hours}小时")
-        if (mins > 0 || isEmpty()) append("${mins}分钟")
+        if (days > 0) append(resources.getString(R.string.retention_days_part, days))
+        if (hours > 0) append(resources.getString(R.string.retention_hours_part, hours))
+        if (mins > 0 || isEmpty()) append(resources.getString(R.string.retention_minutes_part, mins))
     }
 }

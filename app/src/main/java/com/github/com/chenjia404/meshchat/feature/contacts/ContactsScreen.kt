@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -40,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.github.com.chenjia404.meshchat.core.ui.AvatarImage
 import com.github.com.chenjia404.meshchat.core.ui.EmptyState
+import com.github.com.chenjia404.meshchat.R
 import com.github.com.chenjia404.meshchat.core.ui.SectionTitle
 import com.github.com.chenjia404.meshchat.core.util.shouldShowInIncomingPendingList
 import com.github.com.chenjia404.meshchat.domain.repository.ContactsRepository
@@ -89,9 +91,9 @@ class ContactsViewModel @Inject constructor(
 
     private fun formatNetworkError(e: Throwable): String =
         when (e) {
-            is SocketTimeoutException -> "连接超时，请检查网络或服务器是否可达"
-            is UnknownHostException -> "无法解析服务器地址，请检查基础 URL 设置"
-            else -> e.message?.takeIf { it.isNotBlank() } ?: "请求失败"
+            is SocketTimeoutException -> appContext.getString(R.string.error_network_timeout)
+            is UnknownHostException -> appContext.getString(R.string.error_unknown_host)
+            else -> e.message?.takeIf { it.isNotBlank() } ?: appContext.getString(R.string.error_request_failed)
         }
     val uiState: StateFlow<ContactsUiState> = combine(
         contactsRepository.requests,
@@ -140,7 +142,7 @@ class ContactsViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { contactsRepository.sendFriendRequest(peerId, introText) }
                 .onSuccess {
-                    Toast.makeText(appContext, "好友请求已发送", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(appContext, appContext.getString(R.string.toast_friend_request_sent), Toast.LENGTH_SHORT).show()
                     onFinished?.invoke(true)
                 }
                 .onFailure { e ->
@@ -153,7 +155,9 @@ class ContactsViewModel @Inject constructor(
     fun accept(requestId: String) {
         viewModelScope.launch {
             runCatching { contactsRepository.acceptRequest(requestId) }
-                .onSuccess { Toast.makeText(appContext, "已接受", Toast.LENGTH_SHORT).show() }
+                .onSuccess {
+                    Toast.makeText(appContext, appContext.getString(R.string.toast_accepted), Toast.LENGTH_SHORT).show()
+                }
                 .onFailure { e ->
                     Toast.makeText(appContext, formatNetworkError(e), Toast.LENGTH_LONG).show()
                 }
@@ -207,27 +211,27 @@ fun ContactsScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "好友请求",
+                text = stringResource(R.string.friend_requests_title),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f),
             )
             Box {
                 IconButton(onClick = { expanded = true }) {
-                    Icon(Icons.Outlined.Add, contentDescription = "添加")
+                    Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.cd_add))
                 }
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
                 ) {
                     DropdownMenuItem(
-                        text = { Text("添加好友") },
+                        text = { Text(stringResource(R.string.contacts_add_friend)) },
                         onClick = {
                             expanded = false
                             onAddFriendClick()
                         },
                     )
                     DropdownMenuItem(
-                        text = { Text("创建群聊") },
+                        text = { Text(stringResource(R.string.contacts_create_group)) },
                         onClick = {
                             expanded = false
                             onCreateGroupClick()
@@ -244,8 +248,8 @@ fun ContactsScreen(
             if (uiState.requests.isEmpty()) {
                 item {
                     EmptyState(
-                        title = "暂无好友请求",
-                        body = "收到新的 friend_request 事件后，这里会自动刷新。",
+                        title = stringResource(R.string.empty_friend_requests_title),
+                        body = stringResource(R.string.empty_friend_requests_body),
                     )
                 }
             } else {
@@ -267,17 +271,20 @@ fun ContactsScreen(
                             Text(item.body, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Button(onClick = { viewModel.accept(item.requestId) }) { Text("接受") }
-                            Button(onClick = { viewModel.reject(item.requestId) }) { Text("拒绝") }
+                            Button(onClick = { viewModel.accept(item.requestId) }) { Text(stringResource(R.string.accept)) }
+                            Button(onClick = { viewModel.reject(item.requestId) }) { Text(stringResource(R.string.reject)) }
                         }
                     }
                 }
             }
 
-            item { SectionTitle("联系人") }
+            item { SectionTitle(stringResource(R.string.contacts_section_title)) }
             if (uiState.contacts.isEmpty()) {
                 item {
-                    EmptyState(title = "暂无联系人", body = "发送请求并被接受后，联系人会显示在这里。")
+                    EmptyState(
+                        title = stringResource(R.string.empty_contacts_title),
+                        body = stringResource(R.string.empty_contacts_body),
+                    )
                 }
             } else {
                 itemsIndexed(uiState.contacts, key = { _, item -> item.peerId }) { index, item ->

@@ -31,8 +31,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.com.chenjia404.meshchat.R
 import kotlin.math.min
 
 /** 录音中浮层（Voice.md 4.3 / 9.2） */
@@ -105,7 +107,7 @@ fun VoiceRecordOverlay(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = if (willCancel) " " else "上滑取消，松开发送",
+                text = if (willCancel) " " else stringResource(R.string.voice_hint_swipe_cancel),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

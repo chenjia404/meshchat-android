@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
@@ -44,7 +45,9 @@ import com.github.com.chenjia404.meshchat.core.ui.ChatMessageBubble
 import com.github.com.chenjia404.meshchat.core.ui.ChatMessageUiModel
 import com.github.com.chenjia404.meshchat.core.ui.EmptyState
 import com.github.com.chenjia404.meshchat.service.audio.ChatVoiceInlinePlayer
+import com.github.com.chenjia404.meshchat.R
 import com.github.com.chenjia404.meshchat.core.util.AttachmentRenderType
+import com.github.com.chenjia404.meshchat.core.util.attachmentSubtitle
 import com.github.com.chenjia404.meshchat.core.util.copyChatMessageToClipboard
 import com.github.com.chenjia404.meshchat.core.util.resolveRenderType
 import com.github.com.chenjia404.meshchat.domain.repository.GroupRepository
@@ -106,14 +109,7 @@ class GroupChatViewModel @Inject constructor(
                 ChatMessageUiModel(
                     id = message.msgId,
                     title = message.senderPeerId,
-                    subtitle = when (renderType) {
-                        AttachmentRenderType.IMAGE -> "图片"
-                        AttachmentRenderType.VIDEO -> "视频"
-                        AttachmentRenderType.AUDIO -> "语音"
-                        AttachmentRenderType.FILE -> message.mimeType ?: "文件"
-                        AttachmentRenderType.SYSTEM -> message.msgType
-                        AttachmentRenderType.TEXT -> ""
-                    },
+                    subtitle = attachmentSubtitle(appContext.resources, renderType, message.mimeType, message.msgType),
                     isMine = myPeerId != null && myPeerId == message.senderPeerId,
                     renderType = renderType,
                     text = message.plaintext.orEmpty(),
@@ -160,7 +156,7 @@ class GroupChatViewModel @Inject constructor(
 
     fun download(message: ChatMessageUiModel) {
         val url = message.remoteUrl ?: return
-        val fileName = message.fileName ?: "meshchat-attachment"
+        val fileName = message.fileName ?: appContext.getString(R.string.default_attachment_filename)
         viewModelScope.launch {
             runCatching {
                 when (val result = fileDownloadService.downloadToPublicDownloads(url, fileName)) {
@@ -168,7 +164,7 @@ class GroupChatViewModel @Inject constructor(
                         withContext(Dispatchers.Main) {
                             Toast.makeText(
                                 appContext,
-                                "已保存到「下载/MeshChat」",
+                                appContext.getString(R.string.toast_saved_to_downloads),
                                 Toast.LENGTH_SHORT,
                             ).show()
                             if (fileName.endsWith(".apk", ignoreCase = true)) {
@@ -180,7 +176,7 @@ class GroupChatViewModel @Inject constructor(
                         withContext(Dispatchers.Main) {
                             Toast.makeText(
                                 appContext,
-                                "已加入系统下载，请在通知栏或「下载」中查看",
+                                appContext.getString(R.string.toast_queued_system_download),
                                 Toast.LENGTH_LONG,
                             ).show()
                         }
@@ -190,7 +186,7 @@ class GroupChatViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
                         appContext,
-                        e.message ?: "下载失败",
+                        e.message ?: appContext.getString(R.string.error_download_failed),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }
@@ -205,7 +201,7 @@ class GroupChatViewModel @Inject constructor(
     ) {
         val destinations = selectedTargets.mapNotNull { it.toForwardDestination() }
         if (destinations.isEmpty()) {
-            onDone(false, "未选择会话")
+            onDone(false, appContext.getString(R.string.forward_no_target))
             return
         }
         viewModelScope.launch {
@@ -221,7 +217,7 @@ class GroupChatViewModel @Inject constructor(
             }.onSuccess {
                 onDone(true, null)
             }.onFailure { e ->
-                onDone(false, e.message ?: "转发失败")
+                onDone(false, e.message ?: appContext.getString(R.string.error_forward_failed))
             }
         }
     }
@@ -278,9 +274,13 @@ fun GroupChatScreen(
                 if (msg != null) {
                     viewModel.forwardMessage(msg, rows) { ok, err ->
                         if (ok) {
-                            Toast.makeText(context, "已转发", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.toast_forwarded), Toast.LENGTH_SHORT).show()
                         } else {
-                            Toast.makeText(context, err ?: "转发失败", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                err ?: context.getString(R.string.error_forward_failed),
+                                Toast.LENGTH_SHORT,
+                            ).show()
                         }
                     }
                 }
@@ -297,18 +297,18 @@ fun GroupChatScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             IconButton(onClick = onBackClick) {
-                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.cd_back))
             }
-            AvatarImage(uiState.title.ifBlank { "群" }, uiState.avatarUrl, Modifier.size(40.dp))
+            AvatarImage(uiState.title.ifBlank { stringResource(R.string.group_short_name) }, uiState.avatarUrl, Modifier.size(40.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(uiState.title.ifBlank { "群聊" }, style = MaterialTheme.typography.titleLarge)
-                Text("meshproxy group chat", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(uiState.title.ifBlank { stringResource(R.string.group_chat_title) }, style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.group_chat_subtitle_tagline), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         OutlinedTextField(
             value = syncPeerId,
             onValueChange = { syncPeerId = it },
-            label = { Text("同步来源 PeerID") },
+            label = { Text(stringResource(R.string.label_sync_peer_id)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp),
@@ -318,10 +318,13 @@ fun GroupChatScreen(
             onClick = { viewModel.sync(syncPeerId) },
             modifier = Modifier.padding(horizontal = 12.dp),
         ) {
-            Text("群同步")
+            Text(stringResource(R.string.group_sync_button))
         }
         if (uiState.messages.isEmpty()) {
-            EmptyState(title = "暂无群消息", body = "发送一条文本或文件消息开始群聊。")
+            EmptyState(
+                title = stringResource(R.string.empty_group_messages_title),
+                body = stringResource(R.string.empty_group_messages_body),
+            )
         } else {
             LazyColumn(
                 state = listState,
@@ -335,16 +338,22 @@ fun GroupChatScreen(
                         showSenderName = true,
                         onOpenAttachment = { message ->
                             when (message.renderType) {
-                                AttachmentRenderType.IMAGE -> message.remoteUrl?.let { onOpenImage(it, message.fileName ?: "图片") }
-                                AttachmentRenderType.VIDEO -> message.remoteUrl?.let { onOpenVideo(it, message.fileName ?: "视频") }
-                                AttachmentRenderType.AUDIO -> message.remoteUrl?.let { onOpenAudio(it, message.fileName ?: "音频") }
+                                AttachmentRenderType.IMAGE -> message.remoteUrl?.let {
+                                    onOpenImage(it, message.fileName ?: context.getString(R.string.fallback_title_image))
+                                }
+                                AttachmentRenderType.VIDEO -> message.remoteUrl?.let {
+                                    onOpenVideo(it, message.fileName ?: context.getString(R.string.fallback_title_video))
+                                }
+                                AttachmentRenderType.AUDIO -> message.remoteUrl?.let {
+                                    onOpenAudio(it, message.fileName ?: context.getString(R.string.fallback_title_audio))
+                                }
                                 AttachmentRenderType.FILE -> viewModel.download(message)
                                 else -> Unit
                             }
                         },
                         onCopy = { m ->
                             copyChatMessageToClipboard(context, m)
-                            Toast.makeText(context, "已复制", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.toast_copied), Toast.LENGTH_SHORT).show()
                         },
                         onForward = { messageToForward = it },
                         onRevoke = { viewModel.revoke(it.id) },
@@ -360,18 +369,18 @@ fun GroupChatScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Button(onClick = { picker.launch(arrayOf("*/*")) }) { Text("附件") }
+            Button(onClick = { picker.launch(arrayOf("*/*")) }) { Text(stringResource(R.string.attach)) }
             OutlinedTextField(
                 value = input,
                 onValueChange = { input = it },
-                label = { Text("输入群消息") },
+                label = { Text(stringResource(R.string.input_group_message)) },
                 modifier = Modifier.weight(1f),
             )
             Button(onClick = {
                 viewModel.sendText(input)
                 input = ""
             }) {
-                Text("发送")
+                Text(stringResource(R.string.send))
             }
         }
     }
