@@ -1,15 +1,19 @@
 package com.github.com.chenjia404.meshchat.feature.chatlist
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.HorizontalDivider
@@ -19,9 +23,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -54,6 +65,50 @@ data class ChatListItemUiModel(
 data class ChatListUiState(
     val items: List<ChatListItemUiModel> = emptyList(),
 )
+
+/** Quark 风格：未读为红底白字正圆角标（固定直径保证圆形，非椭圆），超过 99 显示 99+ */
+@Composable
+private fun ConversationUnreadBadge(count: Int) {
+    if (count <= 0) return
+    val label = if (count > 99) "99+" else count.toString()
+    val bubbleRed = Color(0xFFFF3B30)
+    // 宽高一致 + CircleShape；直径略大，留出内边距，数字不易显得贴顶/偏上
+    val diameter = when (label.length) {
+        1 -> 22.dp
+        2 -> 24.dp
+        else -> 28.dp // "99+"
+    }
+    val fontSize = when (label.length) {
+        3 -> 9.sp
+        else -> 11.sp
+    }
+    Box(
+        modifier = Modifier
+            .size(diameter)
+            .clip(CircleShape)
+            .background(bubbleRed),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = label,
+            maxLines = 1,
+            // 粗体数字视觉重心略偏上，轻微下移对齐圆心；不用 fillMaxSize 避免测量区导致的「顶格」感
+            modifier = Modifier.offset(y = 1.5.dp),
+            style = TextStyle(
+                color = Color.White,
+                fontSize = fontSize,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                lineHeight = fontSize,
+                lineHeightStyle = LineHeightStyle(
+                    alignment = LineHeightStyle.Alignment.Center,
+                    trim = LineHeightStyle.Trim.Both,
+                ),
+                platformStyle = PlatformTextStyle(includeFontPadding = false),
+            ),
+        )
+    }
+}
 
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
@@ -167,13 +222,7 @@ fun ChatListScreen(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f).padding(end = 8.dp),
                         )
-                        if (item.unreadCount > 0) {
-                            Text(
-                                text = item.unreadCount.toString(),
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
+                        ConversationUnreadBadge(count = item.unreadCount)
                     }
                 }
             }
