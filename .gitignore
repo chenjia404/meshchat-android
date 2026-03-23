@@ -1,0 +1,13 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+/.kotlin/
+/build/
+app/release
+**/build/
+captures/
+
+app/src/main/jniLibs/arm64-v8a/libmeshproxy.so
+gradle/wrapper/gradle-wrapper.jar
+app/key.jks
