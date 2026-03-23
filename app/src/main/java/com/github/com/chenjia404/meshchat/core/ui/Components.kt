@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import com.github.com.chenjia404.meshchat.service.audio.ChatVoiceInlinePlayer
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -140,7 +141,12 @@ fun ChatMessageBubble(
                         .pointerInput(message.id) {
                             detectTapGestures(
                                 onTap = {
-                                    if (message.remoteUrl != null) onOpenAttachment(message)
+                                    val url = message.remoteUrl
+                                    when {
+                                        message.renderType == AttachmentRenderType.AUDIO && url != null ->
+                                            ChatVoiceInlinePlayer.toggle(url)
+                                        url != null -> onOpenAttachment(message)
+                                    }
                                 },
                                 onLongPress = { menuExpanded = true },
                             )
@@ -169,9 +175,15 @@ fun ChatMessageBubble(
                             color = onBubble,
                             modifier = Modifier.widthIn(max = textMax),
                         )
+                        AttachmentRenderType.AUDIO -> {
+                            ChatVoiceMessageBar(
+                                message = message,
+                                onBubble = onBubble,
+                                onBubbleMuted = onBubbleMuted,
+                            )
+                        }
                         AttachmentRenderType.IMAGE,
                         AttachmentRenderType.VIDEO,
-                        AttachmentRenderType.AUDIO,
                         AttachmentRenderType.FILE,
                         -> {
                             if (message.renderType == AttachmentRenderType.IMAGE || message.renderType == AttachmentRenderType.VIDEO) {

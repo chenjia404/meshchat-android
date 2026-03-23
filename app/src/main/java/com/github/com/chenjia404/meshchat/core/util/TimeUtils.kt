@@ -36,7 +36,7 @@ fun formatChatMessageLineTime(raw: String?): String {
 }
 
 fun renderConversationPreview(msgType: String?, plaintext: String?, mimeType: String?, fileName: String?): String {
-    return when (resolveRenderType(msgType.orEmpty(), mimeType)) {
+    return when (resolveRenderType(msgType.orEmpty(), mimeType, fileName)) {
         AttachmentRenderType.TEXT -> plaintext.orEmpty()
         AttachmentRenderType.IMAGE -> "[图片]"
         AttachmentRenderType.VIDEO -> "[视频]"

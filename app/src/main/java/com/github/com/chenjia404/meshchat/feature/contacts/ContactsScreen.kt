@@ -150,46 +150,49 @@ fun ContactsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var expanded by remember { mutableStateOf(false) }
 
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        // 与 SectionTitle 一致：与「好友请求」标题同一行对齐加号
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+    // 标题行放在 LazyColumn 外，避免列表项内 DropdownMenu 的 Popup 锚点错乱（曾表现为出现在左下角）
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "好友请求",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f),
+            )
+            Box {
+                IconButton(onClick = { expanded = true }) {
+                    Icon(Icons.Outlined.Add, contentDescription = "添加")
+                }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
                 ) {
-                    Text(
-                        text = "好友请求",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.weight(1f),
+                    DropdownMenuItem(
+                        text = { Text("添加好友") },
+                        onClick = {
+                            expanded = false
+                            onAddFriendClick()
+                        },
                     )
-                    Box {
-                        IconButton(onClick = { expanded = true }) {
-                            Icon(Icons.Outlined.Add, contentDescription = "添加")
-                        }
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false },
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("添加好友") },
-                                onClick = {
-                                    expanded = false
-                                    onAddFriendClick()
-                                },
-                            )
-                            DropdownMenuItem(
-                                text = { Text("创建群聊") },
-                                onClick = {
-                                    expanded = false
-                                    onCreateGroupClick()
-                                },
-                            )
-                        }
-                    }
+                    DropdownMenuItem(
+                        text = { Text("创建群聊") },
+                        onClick = {
+                            expanded = false
+                            onCreateGroupClick()
+                        },
+                    )
                 }
             }
+        }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+        ) {
             if (uiState.requests.isEmpty()) {
                 item {
                     EmptyState(
@@ -254,5 +257,6 @@ fun ContactsScreen(
                     }
                 }
             }
+        }
     }
 }

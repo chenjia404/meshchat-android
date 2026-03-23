@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +40,7 @@ import com.github.com.chenjia404.meshchat.core.ui.AvatarImage
 import com.github.com.chenjia404.meshchat.core.ui.ChatMessageBubble
 import com.github.com.chenjia404.meshchat.core.ui.ChatMessageUiModel
 import com.github.com.chenjia404.meshchat.core.ui.EmptyState
+import com.github.com.chenjia404.meshchat.service.audio.ChatVoiceInlinePlayer
 import com.github.com.chenjia404.meshchat.core.util.AttachmentRenderType
 import com.github.com.chenjia404.meshchat.core.util.copyChatMessageToClipboard
 import com.github.com.chenjia404.meshchat.core.util.resolveRenderType
@@ -91,14 +93,14 @@ class GroupChatViewModel @Inject constructor(
             title = group?.title ?: groupId,
             avatarUrl = attachmentUrlBuilder.avatarUrl(group?.avatar),
             messages = messages.map { message ->
-                val renderType = resolveRenderType(message.msgType, message.mimeType)
+                val renderType = resolveRenderType(message.msgType, message.mimeType, message.fileName)
                 ChatMessageUiModel(
                     id = message.msgId,
                     title = message.senderPeerId,
                     subtitle = when (renderType) {
                         AttachmentRenderType.IMAGE -> "图片"
                         AttachmentRenderType.VIDEO -> "视频"
-                        AttachmentRenderType.AUDIO -> "音频"
+                        AttachmentRenderType.AUDIO -> "语音"
                         AttachmentRenderType.FILE -> message.mimeType ?: "文件"
                         AttachmentRenderType.SYSTEM -> message.msgType
                         AttachmentRenderType.TEXT -> ""
@@ -197,6 +199,10 @@ fun GroupChatScreen(
     var syncPeerId by remember { mutableStateOf("") }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let(viewModel::sendAttachment)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { ChatVoiceInlinePlayer.stop() }
     }
 
     if (messageToForward != null) {
