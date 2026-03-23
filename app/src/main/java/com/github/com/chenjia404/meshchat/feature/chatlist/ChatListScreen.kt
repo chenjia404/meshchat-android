@@ -28,7 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.github.com.chenjia404.meshchat.core.ui.AvatarImage
 import com.github.com.chenjia404.meshchat.core.ui.EmptyState
-import com.github.com.chenjia404.meshchat.core.util.formatChatTime
+import com.github.com.chenjia404.meshchat.core.util.formatConversationListRelativeTime
 import com.github.com.chenjia404.meshchat.core.util.renderConversationPreview
 import com.github.com.chenjia404.meshchat.domain.repository.ContactsRepository
 import com.github.com.chenjia404.meshchat.domain.repository.DirectChatRepository
@@ -93,7 +93,7 @@ class ChatListViewModel @Inject constructor(
                             ).ifBlank { contact?.bio.orEmpty() },
                             avatarUrl = attachmentUrlBuilder.avatarUrl(contact?.avatar),
                             unreadCount = conversation.unreadCount,
-                            timestamp = formatChatTime(
+                            timestamp = formatConversationListRelativeTime(
                                 latestMessage?.createdAt ?: conversation.lastMessageAt ?: conversation.updatedAt,
                             ),
                         )
@@ -106,7 +106,8 @@ class ChatListViewModel @Inject constructor(
 
 @Composable
 fun ChatListScreen(
-    onConversationClick: (String) -> Unit,
+    /** 第二个参数为进入会话时的未读条数，用于私聊列表首次定位到首条未读 */
+    onConversationClick: (conversationId: String, entryUnread: Int) -> Unit,
     viewModel: ChatListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -122,7 +123,7 @@ fun ChatListScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onConversationClick(item.conversationId) }
+                    .clickable { onConversationClick(item.conversationId, item.unreadCount) }
                     .padding(horizontal = 8.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),

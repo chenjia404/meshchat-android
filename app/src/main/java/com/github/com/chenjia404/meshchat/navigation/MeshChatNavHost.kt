@@ -52,7 +52,7 @@ fun MeshChatNavHost() {
         BottomDestination("settings", "设置") { Icon(Icons.Outlined.Settings, null) },
     )
     val fullScreenRoutes = setOf(
-        "direct_chat/{conversationId}",
+        "direct_chat/{conversationId}/{entryUnread}",
         "group_chat/{groupId}",
         "contact_detail/{peerId}",
         "add_friend",
@@ -96,8 +96,8 @@ fun MeshChatNavHost() {
         ) {
             composable("chat_list") {
                 ChatListScreen(
-                    onConversationClick = { conversationId ->
-                        navController.navigate("direct_chat/$conversationId")
+                    onConversationClick = { conversationId, entryUnread ->
+                        navController.navigate("direct_chat/$conversationId/$entryUnread")
                     },
                 )
             }
@@ -140,13 +140,16 @@ fun MeshChatNavHost() {
                     peerId = backStackEntry.arguments?.getString("peerId").orEmpty(),
                     onBackClick = { navController.popBackStack() },
                     onConversationClick = { conversationId ->
-                        navController.navigate("direct_chat/$conversationId")
+                        navController.navigate("direct_chat/$conversationId/0")
                     },
                 )
             }
             composable(
-                route = "direct_chat/{conversationId}",
-                arguments = listOf(navArgument("conversationId") { type = NavType.StringType }),
+                route = "direct_chat/{conversationId}/{entryUnread}",
+                arguments = listOf(
+                    navArgument("conversationId") { type = NavType.StringType },
+                    navArgument("entryUnread") { type = NavType.IntType; defaultValue = 0 },
+                ),
             ) {
                 DirectChatScreen(
                     onBackClick = { navController.popBackStack() },

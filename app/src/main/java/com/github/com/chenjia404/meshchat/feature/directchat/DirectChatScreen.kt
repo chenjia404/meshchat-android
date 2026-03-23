@@ -26,18 +26,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -92,6 +96,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 
 data class DirectChatUiState(
     val conversationId: String = "",
@@ -115,6 +120,9 @@ class DirectChatViewModel @Inject constructor(
     private val forwardMessageUseCase: ForwardMessageUseCase,
 ) : ViewModel() {
     private val conversationId: String = checkNotNull(savedStateHandle["conversationId"])
+
+    /** 进入会话时导航传入的未读条数（会话列表带入）；联系人入口为 0 */
+    val entryUnreadCount: Int = savedStateHandle.get<Int>("entryUnread") ?: 0
 
     val uiState: StateFlow<DirectChatUiState> = combine(
         directChatRepository.observeConversation(conversationId),
@@ -271,6 +279,9 @@ fun DirectChatScreen(
     viewModel: DirectChatViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val entryUnreadCount = viewModel.entryUnreadCount
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var messageToForward by remember { mutableStateOf<ChatMessageUiModel?>(null) }
@@ -369,6 +380,32 @@ fun DirectChatScreen(
         }
     }
 
+    /** 与 Quark 一致：未读>0 时滚到首条未读（假定未读为时间序末尾 N 条）；否则滚到最新一条 */
+    var didInitialUnreadScroll by remember(uiState.conversationId) { mutableStateOf(false) }
+    LaunchedEffect(uiState.conversationId, uiState.messages.size, entryUnreadCount) {
+        if (didInitialUnreadScroll || uiState.messages.isEmpty()) return@LaunchedEffect
+        val n = uiState.messages.size
+        val unread = entryUnreadCount
+        val index = if (unread <= 0) {
+            n - 1
+        } else {
+            val k = minOf(unread, n)
+            maxOf(0, n - k)
+        }
+        listState.scrollToItem(index)
+        didInitialUnreadScroll = true
+    }
+
+    val showJumpLatestFab by remember {
+        derivedStateOf {
+            val n = uiState.messages.size
+            if (n == 0) return@derivedStateOf false
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                ?: return@derivedStateOf true
+            lastVisible < n - 1
+        }
+    }
+
     if (messageToForward != null) {
         ForwardTargetPickerDialog(
             excludeDirectConversationId = uiState.conversationId,
@@ -450,6 +487,7 @@ fun DirectChatScreen(
                 EmptyState(title = "暂无消息", body = "发送一条文本或文件消息开始聊天。")
             } else {
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     items(uiState.messages, key = { it.id }) { item ->
@@ -472,6 +510,19 @@ fun DirectChatScreen(
                             onRevoke = { viewModel.revoke(it.id) },
                         )
                     }
+                }
+            }
+            if (showJumpLatestFab && uiState.messages.isNotEmpty()) {
+                SmallFloatingActionButton(
+                    onClick = {
+                        val last = uiState.messages.lastIndex
+                        scope.launch { listState.animateScrollToItem(last) }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 16.dp, bottom = 12.dp),
+                ) {
+                    Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "最新")
                 }
             }
             if (voiceOverlayVisible) {
