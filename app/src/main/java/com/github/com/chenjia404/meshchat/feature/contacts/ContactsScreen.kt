@@ -113,9 +113,10 @@ class ContactsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            contactsRepository.refreshContacts()
-            contactsRepository.refreshRequests()
-            profileRepository.refreshMyProfile()
+            // 网络/服务端异常或空 body 时不应导致进程崩溃
+            runCatching { contactsRepository.refreshContacts() }
+            runCatching { contactsRepository.refreshRequests() }
+            runCatching { profileRepository.refreshMyProfile() }
         }
     }
 

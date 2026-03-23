@@ -36,11 +36,12 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface MeshChatApi {
+    /** 响应体为空时 Gson 为 null，须可空，避免 Kotlin NPE */
     @GET("/api/v1/chat/me")
-    suspend fun getMe(): ProfileDto
+    suspend fun getMe(): ProfileDto?
 
     @GET("/api/v1/chat/profile")
-    suspend fun getProfile(): ProfileDto
+    suspend fun getProfile(): ProfileDto?
 
     @POST("/api/v1/chat/profile")
     suspend fun updateProfile(@Body body: UpdateProfileBodyDto): ProfileDto
@@ -189,7 +190,7 @@ interface MeshChatApi {
     ): GroupDto
 
     @GET("/api/v1/groups/{group_id}/messages")
-    suspend fun getGroupMessages(@Path("group_id") groupId: String): List<GroupMessageDto>
+    suspend fun getGroupMessages(@Path("group_id") groupId: String): List<GroupMessageDto>?
 
     @POST("/api/v1/groups/{group_id}/messages")
     suspend fun sendGroupMessage(

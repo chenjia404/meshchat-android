@@ -76,11 +76,13 @@ class DefaultProfileRepository @Inject constructor(
     override val myProfile: Flow<Profile?> = database.profileDao().observeProfile().map { it?.toDomain() }
 
     override suspend fun refreshMyProfile() = withContext(ioDispatcher) {
-        database.profileDao().upsert(api.getMe().toDomain().toEntity())
+        val dto = api.getMe() ?: return@withContext
+        database.profileDao().upsert(dto.toDomain().toEntity())
     }
 
     override suspend fun refreshProfile() = withContext(ioDispatcher) {
-        database.profileDao().upsert(api.getProfile().toDomain().toEntity())
+        val dto = api.getProfile() ?: return@withContext
+        database.profileDao().upsert(dto.toDomain().toEntity())
     }
 
     override suspend fun updateProfile(nickname: String, bio: String) = withContext(ioDispatcher) {
@@ -271,7 +273,7 @@ class DefaultGroupRepository @Inject constructor(
     }
 
     override suspend fun refreshMessages(groupId: String) = withContext(ioDispatcher) {
-        val items = api.getGroupMessages(groupId).map { it.toDomain().toEntity() }
+        val items = api.getGroupMessages(groupId).orEmpty().map { it.toDomain().toEntity() }
         database.withTransaction {
             database.groupMessageDao().clearGroup(groupId)
             database.groupMessageDao().upsertAll(items)
