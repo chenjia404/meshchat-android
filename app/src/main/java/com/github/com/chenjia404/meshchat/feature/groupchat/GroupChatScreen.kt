@@ -310,6 +310,7 @@ fun GroupChatScreen(
                 items(uiState.messages, key = { it.id }) { item ->
                     ChatMessageBubble(
                         message = item,
+                        showSenderName = true,
                         onOpenAttachment = { message ->
                             when (message.renderType) {
                                 AttachmentRenderType.IMAGE -> message.remoteUrl?.let { onOpenImage(it, message.fileName ?: "图片") }

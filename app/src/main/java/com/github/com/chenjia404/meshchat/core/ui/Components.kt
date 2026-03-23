@@ -109,9 +109,62 @@ fun SectionTitle(title: String) {
     )
 }
 
+/** 气泡上方一行：对方左昵称右时间（仅 [showSenderName] 为 true，如群聊）；单聊对方仅显示时间；己方右对齐仅时间；系统消息居中时间 */
+@Composable
+private fun ChatMessageMetaRow(
+    message: ChatMessageUiModel,
+    showSenderName: Boolean,
+) {
+    val timeText = formatChatMessageLineTime(message.timestamp)
+    val timeStyle = MaterialTheme.typography.labelSmall.copy(
+        color = ChatMetaGray,
+        fontSize = 11.sp,
+    )
+    when (message.renderType) {
+        AttachmentRenderType.SYSTEM -> {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = if (message.isMine) Arrangement.End else Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(text = timeText, style = timeStyle)
+            }
+        }
+        else -> {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = when {
+                    message.isMine -> Arrangement.End
+                    showSenderName -> Arrangement.SpaceBetween
+                    else -> Arrangement.Start
+                },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (!message.isMine && showSenderName) {
+                    Text(
+                        text = message.title,
+                        style = timeStyle,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 8.dp),
+                    )
+                }
+                Text(
+                    text = timeText,
+                    style = timeStyle,
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun ChatMessageBubble(
     message: ChatMessageUiModel,
+    /** 为 true 时在对方消息上方显示发送者昵称（群聊）；单聊应传 false */
+    showSenderName: Boolean = true,
     onOpenAttachment: (ChatMessageUiModel) -> Unit,
     onCopy: (ChatMessageUiModel) -> Unit,
     onForward: (ChatMessageUiModel) -> Unit,
@@ -153,6 +206,8 @@ fun ChatMessageBubble(
                         },
                     horizontalAlignment = if (message.isMine) Alignment.End else Alignment.Start,
                 ) {
+            ChatMessageMetaRow(message = message, showSenderName = showSenderName)
+            Spacer(modifier = Modifier.height(4.dp))
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 color = bubbleBg,
@@ -201,21 +256,15 @@ fun ChatMessageBubble(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(4.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = if (message.isMine) Arrangement.End else Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = formatChatMessageLineTime(message.timestamp),
-                    color = ChatMetaGray,
-                    fontSize = 11.sp,
-                )
-                if (message.isMine) {
-                    val stateLabel = formatMessageStateLabel(message.state)
-                    if (stateLabel.isNotEmpty()) {
-                        Spacer(modifier = Modifier.width(6.dp))
+            if (message.isMine) {
+                val stateLabel = formatMessageStateLabel(message.state)
+                if (stateLabel.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                         Text(
                             text = stateLabel,
                             color = if (isFailedMessageState(message.state)) Color(0xFFDE0000) else ChatMetaGray,

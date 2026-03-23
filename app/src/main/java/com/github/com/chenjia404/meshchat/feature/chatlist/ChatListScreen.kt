@@ -125,7 +125,8 @@ fun ChatListScreen(
                     .fillMaxWidth()
                     .clickable { onConversationClick(item.conversationId, item.unreadCount) }
                     .padding(horizontal = 8.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                // 顶部对齐：昵称首行与时间同一水平线（避免 CenterVertically 导致与预览两行整体居中后时间偏下）
+                verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 AvatarImage(
@@ -134,32 +135,45 @@ fun ChatListScreen(
                     modifier = Modifier.size(58.dp),
                 )
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        item.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        item.preview.ifBlank { " " },
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        item.timestamp,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    if (item.unreadCount > 0) {
-                        Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                         Text(
-                            text = item.unreadCount.toString(),
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
+                            item.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f).padding(end = 8.dp),
                         )
+                        Text(
+                            item.timestamp,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            item.preview.ifBlank { " " },
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f).padding(end = 8.dp),
+                        )
+                        if (item.unreadCount > 0) {
+                            Text(
+                                text = item.unreadCount.toString(),
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
                     }
                 }
             }

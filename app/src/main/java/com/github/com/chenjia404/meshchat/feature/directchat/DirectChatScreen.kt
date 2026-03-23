@@ -493,6 +493,7 @@ fun DirectChatScreen(
                     items(uiState.messages, key = { it.id }) { item ->
                         ChatMessageBubble(
                             message = item,
+                            showSenderName = false,
                             onOpenAttachment = { message ->
                                 when (message.renderType) {
                                     AttachmentRenderType.IMAGE -> message.remoteUrl?.let { onOpenImage(it, message.fileName ?: "图片") }
