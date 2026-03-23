@@ -68,9 +68,12 @@ fun AddFriendScreen(
             Button(
                 onClick = {
                     if (peerId.isBlank()) return@Button
-                    viewModel.sendRequest(peerId, introText)
-                    peerId = ""
-                    introText = ""
+                    viewModel.sendRequest(peerId, introText) { ok ->
+                        if (ok) {
+                            peerId = ""
+                            introText = ""
+                        }
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {

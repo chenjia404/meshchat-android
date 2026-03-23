@@ -1,5 +1,7 @@
 package com.github.com.chenjia404.meshchat.feature.contacts
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,6 +47,9 @@ import com.github.com.chenjia404.meshchat.domain.repository.DirectChatRepository
 import com.github.com.chenjia404.meshchat.domain.repository.ProfileRepository
 import com.github.com.chenjia404.meshchat.service.storage.ChatAttachmentUrlBuilder
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -79,7 +84,15 @@ class ContactsViewModel @Inject constructor(
     directChatRepository: DirectChatRepository,
     profileRepository: ProfileRepository,
     private val attachmentUrlBuilder: ChatAttachmentUrlBuilder,
+    @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
+
+    private fun formatNetworkError(e: Throwable): String =
+        when (e) {
+            is SocketTimeoutException -> "连接超时，请检查网络或服务器是否可达"
+            is UnknownHostException -> "无法解析服务器地址，请检查基础 URL 设置"
+            else -> e.message?.takeIf { it.isNotBlank() } ?: "请求失败"
+        }
     val uiState: StateFlow<ContactsUiState> = combine(
         contactsRepository.requests,
         contactsRepository.contacts,
@@ -120,24 +133,58 @@ class ContactsViewModel @Inject constructor(
         }
     }
 
-    fun sendRequest(peerId: String, introText: String) {
-        viewModelScope.launch { contactsRepository.sendFriendRequest(peerId, introText) }
+    /**
+     * @param onFinished 是否成功（用于添加好友页仅在成功时清空输入；主线程回调）
+     */
+    fun sendRequest(peerId: String, introText: String, onFinished: ((Boolean) -> Unit)? = null) {
+        viewModelScope.launch {
+            runCatching { contactsRepository.sendFriendRequest(peerId, introText) }
+                .onSuccess {
+                    Toast.makeText(appContext, "好友请求已发送", Toast.LENGTH_SHORT).show()
+                    onFinished?.invoke(true)
+                }
+                .onFailure { e ->
+                    Toast.makeText(appContext, formatNetworkError(e), Toast.LENGTH_LONG).show()
+                    onFinished?.invoke(false)
+                }
+        }
     }
 
     fun accept(requestId: String) {
-        viewModelScope.launch { contactsRepository.acceptRequest(requestId) }
+        viewModelScope.launch {
+            runCatching { contactsRepository.acceptRequest(requestId) }
+                .onSuccess { Toast.makeText(appContext, "已接受", Toast.LENGTH_SHORT).show() }
+                .onFailure { e ->
+                    Toast.makeText(appContext, formatNetworkError(e), Toast.LENGTH_LONG).show()
+                }
+        }
     }
 
     fun reject(requestId: String) {
-        viewModelScope.launch { contactsRepository.rejectRequest(requestId) }
+        viewModelScope.launch {
+            runCatching { contactsRepository.rejectRequest(requestId) }
+                .onFailure { e ->
+                    Toast.makeText(appContext, formatNetworkError(e), Toast.LENGTH_LONG).show()
+                }
+        }
     }
 
     fun toggleBlocked(item: ContactUiModel) {
-        viewModelScope.launch { contactsRepository.setBlocked(item.peerId, !item.blocked) }
+        viewModelScope.launch {
+            runCatching { contactsRepository.setBlocked(item.peerId, !item.blocked) }
+                .onFailure { e ->
+                    Toast.makeText(appContext, formatNetworkError(e), Toast.LENGTH_LONG).show()
+                }
+        }
     }
 
     fun deleteContact(peerId: String) {
-        viewModelScope.launch { contactsRepository.deleteContact(peerId) }
+        viewModelScope.launch {
+            runCatching { contactsRepository.deleteContact(peerId) }
+                .onFailure { e ->
+                    Toast.makeText(appContext, formatNetworkError(e), Toast.LENGTH_LONG).show()
+                }
+        }
     }
 }
 
