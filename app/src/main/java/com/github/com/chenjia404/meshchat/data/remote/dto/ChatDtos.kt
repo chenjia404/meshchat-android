@@ -260,6 +260,10 @@ data class ChatEventDto(
     @SerializedName("epoch") val epoch: Long?,
     @SerializedName("sender_seq") val senderSeq: Long?,
     @SerializedName("delivery_summary") val deliverySummary: GroupDeliverySummaryDto?,
+    /** retention_update：单聊会话自动删除时间（分钟） */
+    @SerializedName("retention_minutes") val retentionMinutes: Int?,
+    /** retention_update 且 kind 为 group 时，目标群组 id */
+    @SerializedName("group_id") val groupId: String?,
 )
 
 typealias RawJsonDto = JsonElement

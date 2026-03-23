@@ -224,6 +224,12 @@ class DefaultDirectChatRepository @Inject constructor(
         )
     }
 
+    override suspend fun patchLocalRetentionMinutes(conversationId: String, retentionMinutes: Int) =
+        withContext(ioDispatcher) {
+            val updatedAt = java.time.Instant.now().toString()
+            database.directConversationDao().updateRetentionMinutes(conversationId, retentionMinutes, updatedAt)
+        }
+
     override suspend fun revokeMessage(conversationId: String, msgId: String) = withContext(ioDispatcher) {
         api.revokeConversationMessage(conversationId, msgId)
         refreshMessages(conversationId)
@@ -309,6 +315,11 @@ class DefaultGroupRepository @Inject constructor(
         database.groupDao().upsert(api.updateGroupRetention(groupId, RetentionBodyDto(retentionMinutes)).toDomain().toEntity())
     }
 
+    override suspend fun patchLocalRetentionMinutes(groupId: String, retentionMinutes: Int) = withContext(ioDispatcher) {
+        val updatedAt = java.time.Instant.now().toString()
+        database.groupDao().updateRetentionMinutes(groupId, retentionMinutes, updatedAt)
+    }
+
     override suspend fun dissolve(groupId: String, reason: String) = withContext(ioDispatcher) {
         database.groupDao().upsert(api.dissolve(groupId, GroupReasonBodyDto(reason)).toDomain().toEntity())
     }
@@ -383,6 +394,20 @@ class AppCoordinator @Inject constructor(
         val event = eventDto.toDomain()
         chatEventsRepository.persistEvent(event)
         when (event.type) {
+            "retention_update" -> {
+                val minutes = eventDto.retentionMinutes ?: return
+                when (event.kind) {
+                    "group" -> {
+                        val gid = eventDto.groupId ?: eventDto.conversationId ?: return
+                        groupRepository.patchLocalRetentionMinutes(gid, minutes)
+                    }
+                    else -> {
+                        val cid = eventDto.conversationId ?: return
+                        directChatRepository.patchLocalRetentionMinutes(cid, minutes)
+                    }
+                }
+            }
+
             "message", "message_state" -> {
                 when (event.kind) {
                     "group" -> {

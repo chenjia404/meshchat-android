@@ -75,6 +75,13 @@ interface DirectConversationDao {
 
     @Query("DELETE FROM direct_conversations WHERE conversationId = :conversationId")
     suspend fun deleteById(conversationId: String)
+
+    /** WebSocket retention_update：仅更新保留时长，避免整表 refresh */
+    @Query(
+        "UPDATE direct_conversations SET retentionMinutes = :minutes, updatedAt = :updatedAt " +
+            "WHERE conversationId = :conversationId",
+    )
+    suspend fun updateRetentionMinutes(conversationId: String, minutes: Int, updatedAt: String)
 }
 
 @Dao
@@ -111,6 +118,11 @@ interface GroupDao {
 
     @Query("DELETE FROM groups")
     suspend fun clearAll()
+
+    @Query(
+        "UPDATE groups SET retentionMinutes = :minutes, updatedAt = :updatedAt WHERE groupId = :groupId",
+    )
+    suspend fun updateRetentionMinutes(groupId: String, minutes: Int, updatedAt: String)
 }
 
 @Dao

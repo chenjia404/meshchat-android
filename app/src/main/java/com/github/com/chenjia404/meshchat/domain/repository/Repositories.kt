@@ -50,6 +50,8 @@ interface DirectChatRepository {
     suspend fun markRead(conversationId: String)
     suspend fun syncConversation(conversationId: String)
     suspend fun updateRetention(conversationId: String, retentionMinutes: Int)
+    /** WS retention_update：仅更新本地会话保留时长 */
+    suspend fun patchLocalRetentionMinutes(conversationId: String, retentionMinutes: Int)
     suspend fun revokeMessage(conversationId: String, msgId: String)
     suspend fun deleteConversation(conversationId: String)
 }
@@ -68,6 +70,8 @@ interface GroupRepository {
     suspend fun remove(groupId: String, peerId: String, reason: String = "")
     suspend fun updateTitle(groupId: String, title: String)
     suspend fun updateRetention(groupId: String, retentionMinutes: Int)
+    /** WS retention_update：仅更新本地群保留时长 */
+    suspend fun patchLocalRetentionMinutes(groupId: String, retentionMinutes: Int)
     suspend fun dissolve(groupId: String, reason: String = "")
     suspend fun changeController(groupId: String, peerId: String)
     suspend fun sendText(groupId: String, text: String)
