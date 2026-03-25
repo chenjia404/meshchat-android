@@ -197,6 +197,8 @@ fun ContactsScreen(
     onContactClick: (String) -> Unit,
     onAddFriendClick: () -> Unit,
     onCreateGroupClick: () -> Unit,
+    onCreatePublicChannelClick: () -> Unit,
+    onSubscribePublicChannelClick: () -> Unit,
     viewModel: ContactsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -235,6 +237,20 @@ fun ContactsScreen(
                         onClick = {
                             expanded = false
                             onCreateGroupClick()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.contacts_create_public_channel)) },
+                        onClick = {
+                            expanded = false
+                            onCreatePublicChannelClick()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.contacts_subscribe_public_channel)) },
+                        onClick = {
+                            expanded = false
+                            onSubscribePublicChannelClick()
                         },
                     )
                 }

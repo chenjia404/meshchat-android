@@ -155,3 +155,47 @@ data class ChatEvent(
     val deliverySummary: GroupDeliverySummary?,
 )
 
+data class PublicChannel(
+    val channelId: String,
+    val ownerPeerId: String,
+    val name: String,
+    val bio: String,
+    val avatarUrl: String?,
+    val lastSeq: Long,
+    val lastActivitySortMillis: Long,
+    val lastPreview: String,
+)
+
+/** 公开频道简介页：接口聚合 profile / head / sync */
+data class PublicChannelDetail(
+    val channelId: String,
+    val ownerPeerId: String,
+    val name: String,
+    val bio: String,
+    val avatarUrl: String?,
+    val profileVersion: Long,
+    val ownerVersion: Long,
+    val lastSeq: Long,
+    val lastMessageId: Long,
+    val createdAtEpoch: Long,
+    val updatedAtEpoch: Long,
+    val subscribed: Boolean,
+    val lastSeenSeq: Long,
+    val lastSyncedSeq: Long,
+)
+
+data class PublicChannelMessage(
+    val channelId: String,
+    val messageId: Long,
+    val messageType: String,
+    val text: String,
+    val fileName: String?,
+    val mimeType: String?,
+    val fileUrl: String?,
+    val blobId: String?,
+    val isDeleted: Boolean,
+    val authorPeerId: String,
+    val createdAtEpoch: Long,
+    val updatedAtEpoch: Long,
+)
+

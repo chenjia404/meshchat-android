@@ -71,6 +71,8 @@ data class ChatMessageUiModel(
     val remoteUrl: String?,
     val timestamp: String,
     val state: String,
+    /** 已删除/撤回等，用于隐藏菜单项 */
+    val isDeleted: Boolean = false,
 )
 
 @Composable
@@ -199,6 +201,12 @@ fun ChatMessageBubble(
     message: ChatMessageUiModel,
     /** 为 true 时在对方消息上方显示发送者昵称（群聊）；单聊应传 false */
     showSenderName: Boolean = true,
+    /** 为 false 时不展示「撤回」（例如公开频道非 owner） */
+    showRevokeMenu: Boolean = true,
+    /** 公开频道 owner：可撤回任意消息（与 [isMine] 组合在菜单内判断） */
+    isChannelOwner: Boolean = false,
+    /** 非 null 时展示「编辑」（仅文本消息）；owner 可编辑他人文本 */
+    onEdit: ((ChatMessageUiModel) -> Unit)? = null,
     onOpenAttachment: (ChatMessageUiModel) -> Unit,
     onCopy: (ChatMessageUiModel) -> Unit,
     onForward: (ChatMessageUiModel) -> Unit,
@@ -309,7 +317,23 @@ fun ChatMessageBubble(
                             onForward(message)
                         },
                     )
-                    if (message.isMine) {
+                    val canEdit = onEdit != null &&
+                        !message.isDeleted &&
+                        message.renderType == AttachmentRenderType.TEXT &&
+                        (message.isMine || isChannelOwner)
+                    if (canEdit) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.action_edit_message)) },
+                            onClick = {
+                                menuExpanded = false
+                                onEdit!!(message)
+                            },
+                        )
+                    }
+                    val canRevoke = showRevokeMenu &&
+                        !message.isDeleted &&
+                        (message.isMine || isChannelOwner)
+                    if (canRevoke) {
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.action_revoke)) },
                             onClick = {

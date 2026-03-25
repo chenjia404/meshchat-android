@@ -4,6 +4,7 @@ import android.content.Context
 import com.github.com.chenjia404.meshchat.core.util.AttachmentRenderType
 import com.github.com.chenjia404.meshchat.domain.repository.DirectChatRepository
 import com.github.com.chenjia404.meshchat.domain.repository.GroupRepository
+import com.github.com.chenjia404.meshchat.domain.repository.PublicChannelRepository
 import com.github.com.chenjia404.meshchat.service.download.FileDownloadService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
@@ -13,11 +14,13 @@ import javax.inject.Inject
 sealed class ForwardDestination {
     data class Direct(val conversationId: String) : ForwardDestination()
     data class Group(val groupId: String) : ForwardDestination()
+    data class PublicChannel(val channelId: String) : ForwardDestination()
 }
 
 class ForwardMessageUseCase @Inject constructor(
     private val directChatRepository: DirectChatRepository,
     private val groupRepository: GroupRepository,
+    private val publicChannelRepository: PublicChannelRepository,
     private val fileDownloadService: FileDownloadService,
     @ApplicationContext private val context: Context,
 ) {
@@ -50,6 +53,8 @@ class ForwardMessageUseCase @Inject constructor(
                             directChatRepository.sendText(dest.conversationId, text)
                         is ForwardDestination.Group ->
                             groupRepository.sendText(dest.groupId, text)
+                        is ForwardDestination.PublicChannel ->
+                            publicChannelRepository.sendText(dest.channelId, text)
                     }
                 }
             }
@@ -75,6 +80,8 @@ class ForwardMessageUseCase @Inject constructor(
                                     directChatRepository.sendFile(dest.conversationId, copy)
                                 is ForwardDestination.Group ->
                                     groupRepository.sendFile(dest.groupId, copy)
+                                is ForwardDestination.PublicChannel ->
+                                    publicChannelRepository.sendFile(dest.channelId, copy)
                             }
                         } finally {
                             copy.delete()

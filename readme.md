@@ -10,3 +10,6 @@
 - **繁体中文（台湾）**：`res/values-zh-rTW/strings.xml`
 
 在系统设置中切换显示语言后，应用会加载对应资源（可能需要重启应用或重建 Activity）。
+
+
+gh release create v1.0.5  app/release/app-release.apk --generate-notes --title "v1.0.5添加公共频道"

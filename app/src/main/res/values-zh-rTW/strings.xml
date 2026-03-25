@@ -108,7 +108,10 @@
     <string name="forward_empty_targets_hint">暫無其他會話，請先建立私聊或加入群組。</string>
     <string name="forward_target_direct">私聊</string>
     <string name="forward_target_group">群聊</string>
+    <string name="forward_target_public_channel">公開頻道</string>
     <string name="forward">轉傳</string>
+    <string name="forward_uploading">正在上傳…</string>
+    <string name="forward_upload_leave_hint">離開本頁後仍會在背景繼續上傳</string>
 
     <string name="voice_title_recording">正在錄音</string>
     <string name="voice_title_cancel">鬆開手指，取消錄音</string>
@@ -185,6 +188,7 @@
 
     <string name="action_copy">複製</string>
     <string name="action_forward">轉傳</string>
+    <string name="action_edit_message">編輯</string>
     <string name="action_revoke">撤回</string>
 
     <string name="update_available_title">發現新版本</string>
@@ -197,4 +201,29 @@
     <string name="install_failed">無法安裝</string>
 
     <string name="default_attachment_filename">meshchat-attachment</string>
+
+    <string name="public_channel_profile_title">頻道簡介</string>
+    <string name="public_channel_profile_load_error">載入失敗</string>
+    <string name="public_channel_action_retry">重試</string>
+    <string name="public_channel_action_edit">編輯</string>
+    <string name="public_channel_action_save">儲存</string>
+    <string name="public_channel_saving">儲存中…</string>
+    <string name="public_channel_toast_saved">已儲存</string>
+    <string name="public_channel_change_avatar">更換頭像</string>
+    <string name="public_channel_toast_avatar_updated">頭像已更新</string>
+    <string name="label_owner_peer_id">頻道主 peer_id</string>
+    <string name="public_channel_copy_uuid">複製 UUID</string>
+    <string name="public_channel_copy_owner">複製頻道主 ID</string>
+    <string name="label_public_channel_meta">版本與同步</string>
+    <string name="public_channel_meta_line">profile_v=%1$d · owner_v=%2$d · last_seq=%3$d · last_msg=%4$d · %5$s · last_seen=%6$d · synced=%7$d</string>
+    <string name="public_channel_times">建立 %1$s · 更新 %2$s</string>
+    <string name="public_channel_subscribed_yes">已訂閱</string>
+    <string name="public_channel_subscribed_no">未訂閱</string>
+    <string name="edit_public_channel_message_title">編輯訊息</string>
+
+    <string name="public_channel_unsubscribe">取消訂閱</string>
+    <string name="public_channel_unsubscribe_confirm_title">取消訂閱？</string>
+    <string name="public_channel_unsubscribe_confirm_body">將從會話清單中移除此頻道，並一併清除本機快取。</string>
+    <string name="public_channel_unsubscribe_confirm">確定</string>
+    <string name="public_channel_toast_unsubscribed">已取消訂閱</string>
 </resources>

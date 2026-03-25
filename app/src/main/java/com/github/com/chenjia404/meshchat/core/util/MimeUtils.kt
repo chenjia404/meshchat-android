@@ -11,6 +11,18 @@ enum class AttachmentRenderType {
     SYSTEM,
 }
 
+/** 转发附件时是否需先下载再上传（耗时路径，应用级协程 + 界面加载提示）。 */
+fun AttachmentRenderType.requiresDownloadPipeForForward(): Boolean = when (this) {
+    AttachmentRenderType.TEXT,
+    AttachmentRenderType.SYSTEM,
+    -> false
+    AttachmentRenderType.IMAGE,
+    AttachmentRenderType.VIDEO,
+    AttachmentRenderType.AUDIO,
+    AttachmentRenderType.FILE,
+    -> true
+}
+
 /**
  * 是否应按**语音/录音**展示（对齐 QuarkPay：`ChatVoiceRecorder.looksLikeVoiceMimeAndName` / `ChatMessageDto.isVoiceContent`）。
  *
@@ -45,6 +57,28 @@ fun resolveRenderType(msgType: String, mimeType: String?, fileName: String? = nu
             else -> AttachmentRenderType.FILE
         }
 
+        else -> AttachmentRenderType.SYSTEM
+    }
+}
+
+/** 去中心化公开频道 `message_type`：text / image / video / audio / file / system / deleted */
+fun resolvePublicChannelRenderType(messageType: String, mimeType: String?, fileName: String?): AttachmentRenderType {
+    return when (messageType.lowercase()) {
+        "text", "deleted" -> AttachmentRenderType.TEXT
+        "system" -> AttachmentRenderType.SYSTEM
+        "image" -> AttachmentRenderType.IMAGE
+        "video" -> AttachmentRenderType.VIDEO
+        "audio" -> {
+            if (looksLikeVoiceAttachment(mimeType, fileName)) AttachmentRenderType.AUDIO
+            else AttachmentRenderType.AUDIO
+        }
+        "file" -> when {
+            looksLikeVoiceAttachment(mimeType, fileName) -> AttachmentRenderType.AUDIO
+            mimeType.orEmpty().startsWith("image/") -> AttachmentRenderType.IMAGE
+            mimeType.orEmpty().startsWith("video/") -> AttachmentRenderType.VIDEO
+            mimeType.orEmpty().startsWith("audio/") -> AttachmentRenderType.AUDIO
+            else -> AttachmentRenderType.FILE
+        }
         else -> AttachmentRenderType.SYSTEM
     }
 }

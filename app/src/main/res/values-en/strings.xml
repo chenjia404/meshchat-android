@@ -16,13 +16,15 @@
     <string name="nav_groups">Groups</string>
     <string name="nav_settings">Settings</string>
 
-    <string name="empty_chat_list_title">No direct chats yet</string>
-    <string name="empty_chat_list_body">Send a friend request on the Contacts tab. After it is accepted, a chat will appear here.</string>
+    <string name="empty_chat_list_title">No chats yet</string>
+    <string name="empty_chat_list_body">Start a direct chat from Contacts, or create/subscribe to a public channel to see it here.</string>
 
     <string name="friend_requests_title">Friend requests</string>
     <string name="contacts_section_title">Contacts</string>
     <string name="contacts_add_friend">Add friend</string>
     <string name="contacts_create_group">Create group</string>
+    <string name="contacts_create_public_channel">Create channel</string>
+    <string name="contacts_subscribe_public_channel">Subscribe to channel</string>
     <string name="empty_friend_requests_title">No friend requests</string>
     <string name="empty_friend_requests_body">When new friend_request events arrive, they will show up here.</string>
     <string name="empty_contacts_title">No contacts</string>
@@ -108,7 +110,10 @@
     <string name="forward_empty_targets_hint">No other chats. Start a direct chat or join a group first.</string>
     <string name="forward_target_direct">Direct</string>
     <string name="forward_target_group">Group</string>
+    <string name="forward_target_public_channel">Public channel</string>
     <string name="forward">Forward</string>
+    <string name="forward_uploading">Uploading…</string>
+    <string name="forward_upload_leave_hint">Upload continues in the background if you leave this screen</string>
 
     <string name="voice_title_recording">Recording…</string>
     <string name="voice_title_cancel">Release to cancel</string>
@@ -185,6 +190,7 @@
 
     <string name="action_copy">Copy</string>
     <string name="action_forward">Forward</string>
+    <string name="action_edit_message">Edit</string>
     <string name="action_revoke">Revoke</string>
 
     <string name="update_available_title">Update available</string>
@@ -197,4 +203,48 @@
     <string name="install_failed">Install failed</string>
 
     <string name="default_attachment_filename">meshchat-attachment</string>
+
+    <string name="create_public_channel_title">Create public channel</string>
+    <string name="create_public_channel_subtitle">Enter a name and bio. You will be the channel owner.</string>
+    <string name="label_channel_name">Channel name</string>
+    <string name="label_channel_bio">Channel bio</string>
+    <string name="create_public_channel_button">Create</string>
+    <string name="toast_channel_name_required">Please enter a channel name</string>
+
+    <string name="subscribe_public_channel_title">Subscribe to channel</string>
+    <string name="subscribe_public_channel_subtitle">Enter the channel UUID (UUIDv7)</string>
+    <string name="label_channel_uuid">Channel UUID</string>
+    <string name="subscribe_public_channel_button">Subscribe</string>
+    <string name="error_invalid_channel_uuid">Invalid channel UUID. UUIDv7 is required.</string>
+
+    <string name="public_channel_read_only_hint">You are not the owner; only viewing and forwarding are available.</string>
+    <string name="public_channel_input_hint">Message…</string>
+    <string name="empty_public_channel_messages_title">No messages</string>
+    <string name="empty_public_channel_messages_body">Channel messages will appear here.</string>
+    <string name="public_channel_message_deleted">This message was deleted</string>
+
+    <string name="public_channel_profile_title">Channel profile</string>
+    <string name="public_channel_profile_load_error">Failed to load</string>
+    <string name="public_channel_action_retry">Retry</string>
+    <string name="public_channel_action_edit">Edit</string>
+    <string name="public_channel_action_save">Save</string>
+    <string name="public_channel_saving">Saving…</string>
+    <string name="public_channel_toast_saved">Saved</string>
+    <string name="public_channel_change_avatar">Change avatar</string>
+    <string name="public_channel_toast_avatar_updated">Avatar updated</string>
+    <string name="label_owner_peer_id">Owner peer_id</string>
+    <string name="public_channel_copy_uuid">Copy UUID</string>
+    <string name="public_channel_copy_owner">Copy owner ID</string>
+    <string name="label_public_channel_meta">Version &amp; sync</string>
+    <string name="public_channel_meta_line">profile_v=%1$d · owner_v=%2$d · last_seq=%3$d · last_msg=%4$d · %5$s · last_seen=%6$d · synced=%7$d</string>
+    <string name="public_channel_times">Created %1$s · Updated %2$s</string>
+    <string name="public_channel_subscribed_yes">Subscribed</string>
+    <string name="public_channel_subscribed_no">Not subscribed</string>
+    <string name="edit_public_channel_message_title">Edit message</string>
+
+    <string name="public_channel_unsubscribe">Unsubscribe</string>
+    <string name="public_channel_unsubscribe_confirm_title">Unsubscribe?</string>
+    <string name="public_channel_unsubscribe_confirm_body">This channel will be removed from your chat list and local cache cleared.</string>
+    <string name="public_channel_unsubscribe_confirm">OK</string>
+    <string name="public_channel_toast_unsubscribed">Unsubscribed</string>
 </resources>

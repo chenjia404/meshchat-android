@@ -46,6 +46,7 @@ import com.github.com.chenjia404.meshchat.core.util.formatConversationListRelati
 import com.github.com.chenjia404.meshchat.core.util.renderConversationPreview
 import com.github.com.chenjia404.meshchat.domain.repository.ContactsRepository
 import com.github.com.chenjia404.meshchat.domain.repository.DirectChatRepository
+import com.github.com.chenjia404.meshchat.domain.repository.PublicChannelRepository
 import com.github.com.chenjia404.meshchat.service.storage.ChatAttachmentUrlBuilder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -55,22 +56,32 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import java.time.Instant
 
-data class ChatListItemUiModel(
-    val conversationId: String,
+sealed class ChatListNavigateTarget {
+    data class DirectChat(val conversationId: String, val entryUnread: Int) : ChatListNavigateTarget()
+    data class PublicChannel(val channelId: String) : ChatListNavigateTarget()
+}
+
+data class ChatListMergedRow(
+    val stableKey: String,
+    val sortKeyMillis: Long,
     val title: String,
-    val latestMsgType: String?,
-    val latestPlaintext: String?,
-    val latestMimeType: String?,
-    val latestFileName: String?,
+    /** 公开频道列表预览（私聊用下方 msg* 字段在 UI 层拼） */
+    val publicPreview: String,
     val bioFallback: String,
-    val lastActivityAtRaw: String?,
+    val timeDisplayRaw: String?,
     val avatarUrl: String?,
     val unreadCount: Int,
+    val target: ChatListNavigateTarget,
+    val latestMsgType: String? = null,
+    val latestPlaintext: String? = null,
+    val latestMimeType: String? = null,
+    val latestFileName: String? = null,
 )
 
 data class ChatListUiState(
-    val items: List<ChatListItemUiModel> = emptyList(),
+    val rows: List<ChatListMergedRow> = emptyList(),
 )
 
 /** Quark 风格：未读为红底白字正圆角标（固定直径保证圆形，非椭圆），超过 99 显示 99+ */
@@ -79,11 +90,10 @@ private fun ConversationUnreadBadge(count: Int) {
     if (count <= 0) return
     val label = if (count > 99) "99+" else count.toString()
     val bubbleRed = Color(0xFFFF3B30)
-    // 宽高一致 + CircleShape；直径略大，留出内边距，数字不易显得贴顶/偏上
     val diameter = when (label.length) {
         1 -> 22.dp
         2 -> 24.dp
-        else -> 28.dp // "99+"
+        else -> 28.dp
     }
     val fontSize = when (label.length) {
         3 -> 9.sp
@@ -99,7 +109,6 @@ private fun ConversationUnreadBadge(count: Int) {
         Text(
             text = label,
             maxLines = 1,
-            // 粗体数字视觉重心略偏上，轻微下移对齐圆心；不用 fillMaxSize 避免测量区导致的「顶格」感
             modifier = Modifier.offset(y = 1.5.dp),
             style = TextStyle(
                 color = Color.White,
@@ -121,59 +130,91 @@ private fun ConversationUnreadBadge(count: Int) {
 class ChatListViewModel @Inject constructor(
     directChatRepository: DirectChatRepository,
     contactsRepository: ContactsRepository,
+    publicChannelRepository: PublicChannelRepository,
     private val attachmentUrlBuilder: ChatAttachmentUrlBuilder,
 ) : ViewModel() {
-    val uiState: StateFlow<ChatListUiState> = combine(
+
+    private fun String?.toSortMillis(): Long =
+        runCatching {
+            if (this.isNullOrBlank()) 0L else Instant.parse(trim()).toEpochMilli()
+        }.getOrElse { 0L }
+
+    private val directRowsFlow = combine(
         directChatRepository.conversations,
         contactsRepository.contacts,
     ) { conversations, contacts ->
         conversations to contacts
     }.flatMapLatest { (conversations, contacts) ->
         if (conversations.isEmpty()) {
-            flowOf(ChatListUiState())
+            flowOf(emptyList())
         } else {
-            combine(conversations.map { conversation ->
-                directChatRepository.observeLatestMessage(conversation.conversationId)
-            }) { latestMessages ->
+            combine(conversations.map { directChatRepository.observeLatestMessage(it.conversationId) }) { latestMessages ->
                 val contactMap = contacts.associateBy { it.peerId }
-                ChatListUiState(
-                    items = conversations.mapIndexed { index, conversation ->
-                        val contact = contactMap[conversation.peerId]
-                        val latestMessage = latestMessages[index]
-                        val title = contact?.remoteNickname
-                            ?.takeIf { it.isNotBlank() }
-                            ?: contact?.nickname?.takeIf { it.isNotBlank() }
-                            ?: conversation.peerId
-                        ChatListItemUiModel(
-                            conversationId = conversation.conversationId,
-                            title = title,
-                            latestMsgType = latestMessage?.msgType,
-                            latestPlaintext = latestMessage?.plaintext,
-                            latestMimeType = latestMessage?.mimeType,
-                            latestFileName = latestMessage?.fileName,
-                            bioFallback = contact?.bio.orEmpty(),
-                            lastActivityAtRaw = latestMessage?.createdAt
-                                ?: conversation.lastMessageAt
-                                ?: conversation.updatedAt,
-                            avatarUrl = attachmentUrlBuilder.avatarUrl(contact?.avatar),
-                            unreadCount = conversation.unreadCount,
-                        )
-                    },
-                )
+                conversations.mapIndexed { index, conversation ->
+                    val contact = contactMap[conversation.peerId]
+                    val latestMessage = latestMessages[index]
+                    val title = contact?.remoteNickname
+                        ?.takeIf { it.isNotBlank() }
+                        ?: contact?.nickname?.takeIf { it.isNotBlank() }
+                        ?: conversation.peerId
+                    val timeRaw = latestMessage?.createdAt
+                        ?: conversation.lastMessageAt
+                        ?: conversation.updatedAt
+                    ChatListMergedRow(
+                        stableKey = "d:${conversation.conversationId}",
+                        sortKeyMillis = timeRaw.toSortMillis(),
+                        title = title,
+                        publicPreview = "",
+                        bioFallback = contact?.bio.orEmpty(),
+                        timeDisplayRaw = timeRaw,
+                        avatarUrl = attachmentUrlBuilder.avatarUrl(contact?.avatar),
+                        unreadCount = conversation.unreadCount,
+                        target = ChatListNavigateTarget.DirectChat(
+                            conversation.conversationId,
+                            conversation.unreadCount,
+                        ),
+                        latestMsgType = latestMessage?.msgType,
+                        latestPlaintext = latestMessage?.plaintext,
+                        latestMimeType = latestMessage?.mimeType,
+                        latestFileName = latestMessage?.fileName,
+                    )
+                }
             }
         }
+    }
+
+    val uiState: StateFlow<ChatListUiState> = combine(
+        directRowsFlow,
+        publicChannelRepository.channels,
+    ) { directRows, publicChannels ->
+        val publicRows = publicChannels.map { ch ->
+            val iso = Instant.ofEpochMilli(ch.lastActivitySortMillis).toString()
+            ChatListMergedRow(
+                stableKey = "p:${ch.channelId}",
+                sortKeyMillis = ch.lastActivitySortMillis,
+                title = ch.name.ifBlank { ch.channelId },
+                publicPreview = ch.lastPreview,
+                bioFallback = ch.bio,
+                timeDisplayRaw = iso,
+                avatarUrl = ch.avatarUrl,
+                unreadCount = 0,
+                target = ChatListNavigateTarget.PublicChannel(ch.channelId),
+            )
+        }
+        ChatListUiState(
+            rows = (directRows + publicRows).sortedByDescending { it.sortKeyMillis },
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ChatListUiState())
 }
 
 @Composable
 fun ChatListScreen(
-    /** 第二个参数为进入会话时的未读条数，用于私聊列表首次定位到首条未读 */
-    onConversationClick: (conversationId: String, entryUnread: Int) -> Unit,
+    onNavigate: (ChatListNavigateTarget) -> Unit,
     viewModel: ChatListViewModel = hiltViewModel(),
 ) {
     val resources = LocalContext.current.resources
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    if (uiState.items.isEmpty()) {
+    if (uiState.rows.isEmpty()) {
         EmptyState(
             title = stringResource(R.string.empty_chat_list_title),
             body = stringResource(R.string.empty_chat_list_body),
@@ -181,21 +222,25 @@ fun ChatListScreen(
         return
     }
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        itemsIndexed(uiState.items, key = { _, item -> item.conversationId }) { index, item ->
-            val previewText = renderConversationPreview(
-                resources,
-                item.latestMsgType,
-                item.latestPlaintext,
-                item.latestMimeType,
-                item.latestFileName,
-            ).ifBlank { item.bioFallback }
-            val timeText = formatConversationListRelativeTime(resources, item.lastActivityAtRaw)
+        itemsIndexed(uiState.rows, key = { _, item -> item.stableKey }) { index, item ->
+            val previewText = when (item.target) {
+                is ChatListNavigateTarget.DirectChat ->
+                    renderConversationPreview(
+                        resources,
+                        item.latestMsgType,
+                        item.latestPlaintext,
+                        item.latestMimeType,
+                        item.latestFileName,
+                    ).ifBlank { item.bioFallback }
+                is ChatListNavigateTarget.PublicChannel ->
+                    item.publicPreview.ifBlank { item.bioFallback }
+            }
+            val timeText = formatConversationListRelativeTime(resources, item.timeDisplayRaw)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onConversationClick(item.conversationId, item.unreadCount) }
+                    .clickable { onNavigate(item.target) }
                     .padding(horizontal = 8.dp, vertical = 10.dp),
-                // 顶部对齐：昵称首行与时间同一水平线（避免 CenterVertically 导致与预览两行整体居中后时间偏下）
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
@@ -241,7 +286,7 @@ fun ChatListScreen(
                     }
                 }
             }
-            if (index < uiState.items.lastIndex) {
+            if (index < uiState.rows.lastIndex) {
                 HorizontalDivider(modifier = Modifier.fillMaxWidth())
             }
         }

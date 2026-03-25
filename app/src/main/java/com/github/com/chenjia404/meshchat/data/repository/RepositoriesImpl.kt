@@ -5,6 +5,7 @@ import androidx.room.withTransaction
 import com.github.com.chenjia404.meshchat.core.datastore.SettingsStore
 import com.github.com.chenjia404.meshchat.core.dispatchers.IoDispatcher
 import com.github.com.chenjia404.meshchat.data.local.db.AppDatabase
+import com.github.com.chenjia404.meshchat.data.local.db.PublicChannelDatabase
 import com.github.com.chenjia404.meshchat.data.mapper.toDomain
 import com.github.com.chenjia404.meshchat.data.mapper.toEntity
 import com.github.com.chenjia404.meshchat.data.remote.api.MeshChatApi
@@ -38,6 +39,7 @@ import com.github.com.chenjia404.meshchat.domain.repository.ContactsRepository
 import com.github.com.chenjia404.meshchat.domain.repository.DirectChatRepository
 import com.github.com.chenjia404.meshchat.domain.repository.GroupRepository
 import com.github.com.chenjia404.meshchat.domain.repository.ProfileRepository
+import com.github.com.chenjia404.meshchat.domain.repository.PublicChannelRepository
 import com.github.com.chenjia404.meshchat.domain.repository.SettingsRepository
 import com.google.gson.Gson
 import com.google.gson.JsonElement
@@ -267,7 +269,7 @@ class DefaultGroupRepository @Inject constructor(
         database.groupMessageDao().observeMessages(groupId).map { list -> list.map { it.toDomain() } }
 
     override suspend fun refreshGroups() = withContext(ioDispatcher) {
-        val items = api.getGroups().orEmpty().map { it.toDomain().toEntity() }
+        val items = api.getGroups().body().orEmpty().map { it.toDomain().toEntity() }
         database.withTransaction {
             database.groupDao().clearAll()
             database.groupDao().upsertAll(items)
@@ -372,6 +374,7 @@ class AppCoordinator @Inject constructor(
     private val contactsRepository: ContactsRepository,
     private val directChatRepository: DirectChatRepository,
     private val groupRepository: GroupRepository,
+    private val publicChannelRepository: PublicChannelRepository,
     private val chatEventsRepository: ChatEventsRepository,
     private val socket: MeshChatSocket,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -388,6 +391,7 @@ class AppCoordinator @Inject constructor(
         contactsRepository.refreshRequests()
         directChatRepository.refreshConversations()
         groupRepository.refreshGroups()
+        runCatching { publicChannelRepository.refreshSubscriptions() }
     }
 
     private suspend fun handleSocketEvent(eventDto: ChatEventDto) {
@@ -459,6 +463,9 @@ abstract class RepositoryBindings {
 
     @Binds
     abstract fun bindChatEventsRepository(impl: DefaultChatEventsRepository): ChatEventsRepository
+
+    @Binds
+    abstract fun bindPublicChannelRepository(impl: DefaultPublicChannelRepository): PublicChannelRepository
 }
 
 @Module
@@ -472,5 +479,15 @@ object DatabaseModule {
         context,
         AppDatabase::class.java,
         "meshchat.db",
+    ).fallbackToDestructiveMigration().build()
+
+    @Provides
+    @Singleton
+    fun providePublicChannelDatabase(
+        @ApplicationContext context: android.content.Context,
+    ): PublicChannelDatabase = Room.databaseBuilder(
+        context,
+        PublicChannelDatabase::class.java,
+        "public_channels.db",
     ).fallbackToDestructiveMigration().build()
 }

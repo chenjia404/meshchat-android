@@ -17,13 +17,15 @@
     <string name="nav_groups">群组</string>
     <string name="nav_settings">设置</string>
 
-    <string name="empty_chat_list_title">还没有单聊会话</string>
-    <string name="empty_chat_list_body">先在联系人页发送好友请求，接受后这里会出现会话。</string>
+    <string name="empty_chat_list_title">还没有会话</string>
+    <string name="empty_chat_list_body">发起私聊好友请求，或在联系人页创建/订阅公开频道后，会话会出现在这里。</string>
 
     <string name="friend_requests_title">好友请求</string>
     <string name="contacts_section_title">联系人</string>
     <string name="contacts_add_friend">添加好友</string>
     <string name="contacts_create_group">创建群聊</string>
+    <string name="contacts_create_public_channel">创建频道</string>
+    <string name="contacts_subscribe_public_channel">订阅频道</string>
     <string name="empty_friend_requests_title">暂无好友请求</string>
     <string name="empty_friend_requests_body">收到新的 friend_request 事件后，这里会自动刷新。</string>
     <string name="empty_contacts_title">暂无联系人</string>
@@ -109,7 +111,10 @@
     <string name="forward_empty_targets_hint">暂无其他会话，请先创建私聊或加入群聊。</string>
     <string name="forward_target_direct">私聊</string>
     <string name="forward_target_group">群聊</string>
+    <string name="forward_target_public_channel">公开频道</string>
     <string name="forward">转发</string>
+    <string name="forward_uploading">正在上传…</string>
+    <string name="forward_upload_leave_hint">离开本页后仍会在后台继续上传</string>
 
     <string name="voice_title_recording">正在录音</string>
     <string name="voice_title_cancel">松开手指，取消录音</string>
@@ -186,6 +191,7 @@
 
     <string name="action_copy">复制</string>
     <string name="action_forward">转发</string>
+    <string name="action_edit_message">编辑</string>
     <string name="action_revoke">撤回</string>
 
     <string name="update_available_title">发现新版本</string>
@@ -198,4 +204,48 @@
     <string name="install_failed">无法安装</string>
 
     <string name="default_attachment_filename">meshchat-attachment</string>
+
+    <string name="create_public_channel_title">创建公开频道</string>
+    <string name="create_public_channel_subtitle">填写名称与简介，创建后你将成为频道 owner</string>
+    <string name="label_channel_name">频道名称</string>
+    <string name="label_channel_bio">频道简介</string>
+    <string name="create_public_channel_button">创建</string>
+    <string name="toast_channel_name_required">请输入频道名称</string>
+
+    <string name="subscribe_public_channel_title">订阅公开频道</string>
+    <string name="subscribe_public_channel_subtitle">输入频道的 UUID（UUIDv7）</string>
+    <string name="label_channel_uuid">频道 UUID</string>
+    <string name="subscribe_public_channel_button">订阅</string>
+    <string name="error_invalid_channel_uuid">无效的频道 UUID，需为 UUIDv7 格式</string>
+
+    <string name="public_channel_read_only_hint">你不是频道 owner，仅可查看与转发。</string>
+    <string name="public_channel_input_hint">输入消息…</string>
+    <string name="empty_public_channel_messages_title">暂无消息</string>
+    <string name="empty_public_channel_messages_body">频道消息会显示在这里。</string>
+    <string name="public_channel_message_deleted">该消息已删除</string>
+
+    <string name="public_channel_profile_title">频道简介</string>
+    <string name="public_channel_profile_load_error">加载失败</string>
+    <string name="public_channel_action_retry">重试</string>
+    <string name="public_channel_action_edit">编辑</string>
+    <string name="public_channel_action_save">保存</string>
+    <string name="public_channel_saving">保存中…</string>
+    <string name="public_channel_toast_saved">已保存</string>
+    <string name="public_channel_change_avatar">更换头像</string>
+    <string name="public_channel_toast_avatar_updated">头像已更新</string>
+    <string name="label_owner_peer_id">频道主 peer_id</string>
+    <string name="public_channel_copy_uuid">复制 UUID</string>
+    <string name="public_channel_copy_owner">复制频道主 ID</string>
+    <string name="label_public_channel_meta">版本与同步</string>
+    <string name="public_channel_meta_line">profile_v=%1$d · owner_v=%2$d · last_seq=%3$d · last_msg=%4$d · %5$s · last_seen=%6$d · synced=%7$d</string>
+    <string name="public_channel_times">创建 %1$s · 更新 %2$s</string>
+    <string name="public_channel_subscribed_yes">已订阅</string>
+    <string name="public_channel_subscribed_no">未订阅</string>
+    <string name="edit_public_channel_message_title">编辑消息</string>
+
+    <string name="public_channel_unsubscribe">取消订阅</string>
+    <string name="public_channel_unsubscribe_confirm_title">取消订阅？</string>
+    <string name="public_channel_unsubscribe_confirm_body">将从会话列表中移除该频道，本地缓存会一并清除。</string>
+    <string name="public_channel_unsubscribe_confirm">确定</string>
+    <string name="public_channel_toast_unsubscribed">已取消订阅</string>
 </resources>

@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -46,8 +47,10 @@ import com.github.com.chenjia404.meshchat.core.ui.ChatMessageUiModel
 import com.github.com.chenjia404.meshchat.core.ui.EmptyState
 import com.github.com.chenjia404.meshchat.service.audio.ChatVoiceInlinePlayer
 import com.github.com.chenjia404.meshchat.R
+import com.github.com.chenjia404.meshchat.core.dispatchers.ApplicationScope
 import com.github.com.chenjia404.meshchat.core.util.AttachmentRenderType
 import com.github.com.chenjia404.meshchat.core.util.attachmentSubtitle
+import com.github.com.chenjia404.meshchat.core.util.requiresDownloadPipeForForward
 import com.github.com.chenjia404.meshchat.core.util.copyChatMessageToClipboard
 import com.github.com.chenjia404.meshchat.core.util.resolveRenderType
 import com.github.com.chenjia404.meshchat.domain.repository.GroupRepository
@@ -55,6 +58,7 @@ import com.github.com.chenjia404.meshchat.domain.repository.ProfileRepository
 import com.github.com.chenjia404.meshchat.domain.usecase.ForwardMessageUseCase
 import com.github.com.chenjia404.meshchat.feature.forward.ForwardTargetPickerDialog
 import com.github.com.chenjia404.meshchat.feature.forward.ForwardTargetRowItem
+import com.github.com.chenjia404.meshchat.feature.forward.ForwardUploadOverlay
 import com.github.com.chenjia404.meshchat.feature.forward.toForwardDestination
 import com.github.com.chenjia404.meshchat.service.download.ApkInstallHelper
 import com.github.com.chenjia404.meshchat.service.download.FileDownloadService
@@ -64,8 +68,11 @@ import com.github.com.chenjia404.meshchat.service.storage.UriFileResolver
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.Dispatchers
@@ -85,6 +92,7 @@ data class GroupChatUiState(
 class GroupChatViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val appContext: Context,
+    @ApplicationScope private val applicationScope: CoroutineScope,
     private val groupRepository: GroupRepository,
     profileRepository: ProfileRepository,
     private val attachmentUrlBuilder: ChatAttachmentUrlBuilder,
@@ -125,6 +133,9 @@ class GroupChatViewModel @Inject constructor(
             },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), GroupChatUiState())
+
+    private val _forwardAttachmentUploading = MutableStateFlow(false)
+    val forwardAttachmentUploading: StateFlow<Boolean> = _forwardAttachmentUploading.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -204,20 +215,35 @@ class GroupChatViewModel @Inject constructor(
             onDone(false, appContext.getString(R.string.forward_no_target))
             return
         }
-        viewModelScope.launch {
-            runCatching {
-                forwardMessageUseCase.forward(
-                    renderType = message.renderType,
-                    plainText = message.text,
-                    subtitle = message.subtitle,
-                    fileName = message.fileName,
-                    downloadUrl = message.remoteUrl,
-                    destinations = destinations,
-                )
-            }.onSuccess {
-                onDone(true, null)
-            }.onFailure { e ->
-                onDone(false, e.message ?: appContext.getString(R.string.error_forward_failed))
+        val useAppScope = message.renderType.requiresDownloadPipeForForward()
+        val scope = if (useAppScope) applicationScope else viewModelScope
+        scope.launch {
+            if (useAppScope) {
+                _forwardAttachmentUploading.value = true
+            }
+            try {
+                runCatching {
+                    forwardMessageUseCase.forward(
+                        renderType = message.renderType,
+                        plainText = message.text,
+                        subtitle = message.subtitle,
+                        fileName = message.fileName,
+                        downloadUrl = message.remoteUrl,
+                        destinations = destinations,
+                    )
+                }.onSuccess {
+                    withContext(Dispatchers.Main) {
+                        onDone(true, null)
+                    }
+                }.onFailure { e ->
+                    withContext(Dispatchers.Main) {
+                        onDone(false, e.message ?: appContext.getString(R.string.error_forward_failed))
+                    }
+                }
+            } finally {
+                if (useAppScope) {
+                    _forwardAttachmentUploading.value = false
+                }
             }
         }
     }
@@ -232,6 +258,7 @@ fun GroupChatScreen(
     viewModel: GroupChatViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val forwardUploading by viewModel.forwardAttachmentUploading.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val context = LocalContext.current
     var messageToForward by remember { mutableStateOf<ChatMessageUiModel?>(null) }
@@ -288,7 +315,8 @@ fun GroupChatScreen(
         )
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -383,5 +411,7 @@ fun GroupChatScreen(
                 Text(stringResource(R.string.send))
             }
         }
+        }
+        ForwardUploadOverlay(visible = forwardUploading)
     }
 }

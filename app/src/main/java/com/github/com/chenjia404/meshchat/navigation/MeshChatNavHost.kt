@@ -34,6 +34,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.github.com.chenjia404.meshchat.feature.chatlist.ChatListNavigateTarget
 import com.github.com.chenjia404.meshchat.feature.chatlist.ChatListScreen
 import com.github.com.chenjia404.meshchat.feature.contacts.AddFriendScreen
 import com.github.com.chenjia404.meshchat.feature.contacts.ContactDetailScreen
@@ -45,6 +46,10 @@ import com.github.com.chenjia404.meshchat.feature.groupchat.GroupChatScreen
 import com.github.com.chenjia404.meshchat.feature.media.AudioPlayerScreen
 import com.github.com.chenjia404.meshchat.feature.media.ImagePreviewScreen
 import com.github.com.chenjia404.meshchat.feature.media.VideoPlayerScreen
+import com.github.com.chenjia404.meshchat.feature.publicchannel.CreatePublicChannelScreen
+import com.github.com.chenjia404.meshchat.feature.publicchannel.PublicChannelDetailScreen
+import com.github.com.chenjia404.meshchat.feature.publicchannel.PublicChannelScreen
+import com.github.com.chenjia404.meshchat.feature.publicchannel.SubscribePublicChannelScreen
 import com.github.com.chenjia404.meshchat.feature.settings.SettingsScreen
 import androidx.navigation.navArgument
 
@@ -79,6 +84,10 @@ fun MeshChatNavHost() {
         "image_preview/{url}/{title}",
         "video_player/{url}/{title}",
         "audio_player/{url}/{title}",
+        "public_channel/{channelId}",
+        "public_channel_detail/{channelId}",
+        "create_public_channel",
+        "subscribe_public_channel",
     )
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -116,8 +125,13 @@ fun MeshChatNavHost() {
         ) {
             composable("chat_list") {
                 ChatListScreen(
-                    onConversationClick = { conversationId, entryUnread ->
-                        navController.navigate("direct_chat/$conversationId/$entryUnread")
+                    onNavigate = { target ->
+                        when (target) {
+                            is ChatListNavigateTarget.DirectChat ->
+                                navController.navigate("direct_chat/${target.conversationId}/${target.entryUnread}")
+                            is ChatListNavigateTarget.PublicChannel ->
+                                navController.navigate("public_channel/${target.channelId}")
+                        }
                     },
                 )
             }
@@ -131,6 +145,12 @@ fun MeshChatNavHost() {
                     },
                     onCreateGroupClick = {
                         navController.navigate("create_group")
+                    },
+                    onCreatePublicChannelClick = {
+                        navController.navigate("create_public_channel")
+                    },
+                    onSubscribePublicChannelClick = {
+                        navController.navigate("subscribe_public_channel")
                     },
                 )
             }
@@ -150,6 +170,26 @@ fun MeshChatNavHost() {
             composable("create_group") {
                 CreateGroupScreen(
                     onBackClick = { navController.popBackStack() },
+                )
+            }
+            composable("create_public_channel") {
+                CreatePublicChannelScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onCreated = { channelId ->
+                        navController.navigate("public_channel/$channelId") {
+                            popUpTo("create_public_channel") { inclusive = true }
+                        }
+                    },
+                )
+            }
+            composable("subscribe_public_channel") {
+                SubscribePublicChannelScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onSubscribed = { channelId ->
+                        navController.navigate("public_channel/$channelId") {
+                            popUpTo("subscribe_public_channel") { inclusive = true }
+                        }
+                    },
                 )
             }
             composable(
@@ -185,6 +225,35 @@ fun MeshChatNavHost() {
                     onOpenAudio = { url, title ->
                         navController.navigate("audio_player/${Uri.encode(url)}/${Uri.encode(title)}")
                     },
+                )
+            }
+            composable(
+                route = "public_channel/{channelId}",
+                arguments = listOf(navArgument("channelId") { type = NavType.StringType }),
+            ) {
+                PublicChannelScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onOpenChannelProfile = { id ->
+                        navController.navigate("public_channel_detail/$id")
+                    },
+                    onOpenImage = { url, title ->
+                        navController.navigate("image_preview/${Uri.encode(url)}/${Uri.encode(title)}")
+                    },
+                    onOpenVideo = { url, title ->
+                        navController.navigate("video_player/${Uri.encode(url)}/${Uri.encode(title)}")
+                    },
+                    onOpenAudio = { url, title ->
+                        navController.navigate("audio_player/${Uri.encode(url)}/${Uri.encode(title)}")
+                    },
+                )
+            }
+            composable(
+                route = "public_channel_detail/{channelId}",
+                arguments = listOf(navArgument("channelId") { type = NavType.StringType }),
+            ) {
+                PublicChannelDetailScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onUnsubscribed = { navController.popBackStack() },
                 )
             }
             composable(

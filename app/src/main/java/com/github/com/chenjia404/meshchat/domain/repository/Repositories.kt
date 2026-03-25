@@ -8,6 +8,9 @@ import com.github.com.chenjia404.meshchat.domain.model.FriendRequest
 import com.github.com.chenjia404.meshchat.domain.model.Group
 import com.github.com.chenjia404.meshchat.domain.model.GroupMessage
 import com.github.com.chenjia404.meshchat.domain.model.Profile
+import com.github.com.chenjia404.meshchat.domain.model.PublicChannel
+import com.github.com.chenjia404.meshchat.domain.model.PublicChannelDetail
+import com.github.com.chenjia404.meshchat.domain.model.PublicChannelMessage
 import java.io.File
 import kotlinx.coroutines.flow.Flow
 
@@ -83,4 +86,23 @@ interface GroupRepository {
 interface ChatEventsRepository {
     val events: Flow<List<ChatEvent>>
     suspend fun persistEvent(event: ChatEvent)
+}
+
+interface PublicChannelRepository {
+    val channels: Flow<List<PublicChannel>>
+    fun observeChannel(channelId: String): Flow<PublicChannel?>
+    fun observeMessages(channelId: String): Flow<List<PublicChannelMessage>>
+    suspend fun refreshSubscriptions()
+    suspend fun refreshChannel(channelId: String)
+    suspend fun refreshMessages(channelId: String)
+    suspend fun createChannel(name: String, bio: String): String
+    suspend fun subscribe(channelId: String)
+    suspend fun unsubscribe(channelId: String)
+    suspend fun sendText(channelId: String, text: String)
+    suspend fun sendFile(channelId: String, file: File, caption: String = "")
+    suspend fun getChannelDetail(channelId: String): PublicChannelDetail
+    suspend fun updateChannelProfile(channelId: String, name: String, bio: String)
+    suspend fun uploadChannelAvatar(channelId: String, file: File)
+    suspend fun revokeMessage(channelId: String, messageId: Long)
+    suspend fun updateMessageText(channelId: String, messageId: Long, text: String)
 }

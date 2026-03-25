@@ -34,6 +34,7 @@ import com.github.com.chenjia404.meshchat.domain.usecase.ForwardDestination
 fun ForwardTargetRowItem.toForwardDestination(): ForwardDestination? = when {
     id.startsWith("d:") -> ForwardDestination.Direct(id.removePrefix("d:"))
     id.startsWith("g:") -> ForwardDestination.Group(id.removePrefix("g:"))
+    id.startsWith("pc:") -> ForwardDestination.PublicChannel(id.removePrefix("pc:"))
     else -> null
 }
 
@@ -41,21 +42,23 @@ fun ForwardTargetRowItem.toForwardDestination(): ForwardDestination? = when {
 fun ForwardTargetPickerDialog(
     excludeDirectConversationId: String?,
     excludeGroupId: String?,
+    excludePublicChannelId: String? = null,
     onDismiss: () -> Unit,
     onConfirm: (List<ForwardTargetRowItem>) -> Unit,
     viewModel: ForwardTargetPickerViewModel = hiltViewModel(),
 ) {
     val allRows by viewModel.rows.collectAsStateWithLifecycle()
-    val rows = remember(allRows, excludeDirectConversationId, excludeGroupId) {
+    val rows = remember(allRows, excludeDirectConversationId, excludeGroupId, excludePublicChannelId) {
         allRows.filter { row ->
             val exD = excludeDirectConversationId?.let { "d:$it" }
             val exG = excludeGroupId?.let { "g:$it" }
-            row.id != exD && row.id != exG
+            val exP = excludePublicChannelId?.let { "pc:$it" }
+            row.id != exD && row.id != exG && row.id != exP
         }
     }
     var selected by remember { mutableStateOf(setOf<String>()) }
 
-    LaunchedEffect(excludeDirectConversationId, excludeGroupId) {
+    LaunchedEffect(excludeDirectConversationId, excludeGroupId, excludePublicChannelId) {
         selected = emptySet()
     }
 
@@ -101,8 +104,11 @@ fun ForwardTargetPickerDialog(
                                 Text(row.title, style = MaterialTheme.typography.bodyLarge)
                                 Text(
                                     stringResource(
-                                        if (row.isGroup) R.string.forward_target_group
-                                        else R.string.forward_target_direct,
+                                        when {
+                                            row.isPublicChannel -> R.string.forward_target_public_channel
+                                            row.isGroup -> R.string.forward_target_group
+                                            else -> R.string.forward_target_direct
+                                        },
                                     ),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
