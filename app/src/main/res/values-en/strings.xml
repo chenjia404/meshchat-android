@@ -115,6 +115,12 @@
     <string name="forward_uploading">Uploading…</string>
     <string name="forward_upload_leave_hint">Upload continues in the background if you leave this screen</string>
 
+    <string name="share_targets_title">Share to chats</string>
+    <string name="share_targets_subtitle">%1$d file(s) selected</string>
+    <string name="share_targets_empty">No chats yet. Start a direct chat, join a group, or subscribe to a channel.</string>
+    <string name="share_targets_send">Send</string>
+    <string name="share_targets_toast_sent">Sent</string>
+
     <string name="voice_title_recording">Recording…</string>
     <string name="voice_title_cancel">Release to cancel</string>
     <string name="voice_hint_swipe_cancel">Swipe up to cancel, release to send</string>

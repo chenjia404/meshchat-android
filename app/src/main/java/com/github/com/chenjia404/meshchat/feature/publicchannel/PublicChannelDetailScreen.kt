@@ -101,7 +101,7 @@ class PublicChannelDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(loading = true, error = null) }
             runCatching {
-                val detail = publicChannelRepository.getChannelDetail(channelId)
+                val detail = publicChannelRepository.syncChannelOnOpen(channelId)
                 val myId = profileRepository.myProfile.first()?.peerId
                 val isOwner = myId != null && myId == detail.ownerPeerId
                 _uiState.update {

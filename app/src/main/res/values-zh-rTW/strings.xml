@@ -113,6 +113,12 @@
     <string name="forward_uploading">正在上傳…</string>
     <string name="forward_upload_leave_hint">離開本頁後仍會在背景繼續上傳</string>
 
+    <string name="share_targets_title">分享到會話</string>
+    <string name="share_targets_subtitle">已選擇 %1$d 個檔案</string>
+    <string name="share_targets_empty">暫無會話，請先發起私聊、加入群聊或訂閱公開頻道。</string>
+    <string name="share_targets_send">傳送</string>
+    <string name="share_targets_toast_sent">已傳送</string>
+
     <string name="voice_title_recording">正在錄音</string>
     <string name="voice_title_cancel">鬆開手指，取消錄音</string>
     <string name="voice_hint_swipe_cancel">上滑取消，鬆開傳送</string>

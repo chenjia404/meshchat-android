@@ -51,6 +51,8 @@ import com.github.com.chenjia404.meshchat.feature.publicchannel.PublicChannelDet
 import com.github.com.chenjia404.meshchat.feature.publicchannel.PublicChannelScreen
 import com.github.com.chenjia404.meshchat.feature.publicchannel.SubscribePublicChannelScreen
 import com.github.com.chenjia404.meshchat.feature.settings.SettingsScreen
+import com.github.com.chenjia404.meshchat.feature.share.ShareTargetsScreen
+import com.github.com.chenjia404.meshchat.share.IncomingShareManager
 import androidx.navigation.navArgument
 
 private data class BottomDestination(
@@ -60,8 +62,20 @@ private data class BottomDestination(
 )
 
 @Composable
-fun MeshChatNavHost() {
+fun MeshChatNavHost(
+    incomingShareManager: IncomingShareManager,
+) {
     val navController = rememberNavController()
+    val pendingShare by incomingShareManager.pending.collectAsStateWithLifecycle()
+
+    LaunchedEffect(pendingShare) {
+        val p = pendingShare
+        if (p != null && p.uris.isNotEmpty()) {
+            navController.navigate("share_incoming") {
+                launchSingleTop = true
+            }
+        }
+    }
     val appUpdateViewModel: AppUpdateViewModel = hiltViewModel()
     val appUpdateInfo by appUpdateViewModel.appUpdateInfo.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -88,6 +102,7 @@ fun MeshChatNavHost() {
         "public_channel_detail/{channelId}",
         "create_public_channel",
         "subscribe_public_channel",
+        "share_incoming",
     )
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -162,6 +177,12 @@ fun MeshChatNavHost() {
                 )
             }
             composable("settings") { SettingsScreen() }
+            composable("share_incoming") {
+                ShareTargetsScreen(
+                    incomingShareManager = incomingShareManager,
+                    onBack = { navController.popBackStack() },
+                )
+            }
             composable("add_friend") {
                 AddFriendScreen(
                     onBackClick = { navController.popBackStack() },

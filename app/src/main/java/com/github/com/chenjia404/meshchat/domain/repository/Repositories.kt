@@ -100,6 +100,8 @@ interface PublicChannelRepository {
     suspend fun unsubscribe(channelId: String)
     suspend fun sendText(channelId: String, text: String)
     suspend fun sendFile(channelId: String, file: File, caption: String = "")
+    /** 进入频道详情或聊天页：先 POST sync，再 GET 频道与 GET 消息(limit=20)，并写入本地。 */
+    suspend fun syncChannelOnOpen(channelId: String): PublicChannelDetail
     suspend fun getChannelDetail(channelId: String): PublicChannelDetail
     suspend fun updateChannelProfile(channelId: String, name: String, bio: String)
     suspend fun uploadChannelAvatar(channelId: String, file: File)

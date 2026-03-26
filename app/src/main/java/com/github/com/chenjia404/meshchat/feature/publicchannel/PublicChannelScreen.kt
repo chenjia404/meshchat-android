@@ -167,8 +167,7 @@ class PublicChannelViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             runCatching {
-                publicChannelRepository.refreshChannel(channelId)
-                publicChannelRepository.refreshMessages(channelId)
+                publicChannelRepository.syncChannelOnOpen(channelId)
             }
         }
     }

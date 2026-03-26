@@ -149,6 +149,17 @@ class DefaultPublicChannelRepository @Inject constructor(
         recomputeChannelMeta(id)
     }
 
+    override suspend fun syncChannelOnOpen(channelId: String): PublicChannelDetail = withContext(ioDispatcher) {
+        val id = channelId.trim()
+        api.syncPublicChannel(id)
+        val summary = api.getPublicChannel(id)
+        database.withTransaction {
+            upsertSummaryFromDto(summary, preservePreviewFromDb = true)
+        }
+        refreshMessagesInternal(id, limit = 20)
+        summaryDtoToDetail(summary)
+    }
+
     override suspend fun getChannelDetail(channelId: String) = withContext(ioDispatcher) {
         summaryDtoToDetail(api.getPublicChannel(channelId.trim()))
     }
@@ -239,8 +250,8 @@ class DefaultPublicChannelRepository @Inject constructor(
         )
     }
 
-    private suspend fun refreshMessagesInternal(channelId: String) {
-        val page = api.getPublicChannelMessages(channelId, beforeMessageId = null, limit = 50)
+    private suspend fun refreshMessagesInternal(channelId: String, limit: Int = 50) {
+        val page = api.getPublicChannelMessages(channelId, beforeMessageId = null, limit = limit)
         val items = page.items.orEmpty().sortedBy { it.messageId }
         database.withTransaction {
             dao.deleteMessages(channelId)
