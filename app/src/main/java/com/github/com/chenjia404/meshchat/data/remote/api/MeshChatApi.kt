@@ -248,6 +248,9 @@ interface MeshChatApi {
     @POST("/api/v1/public-channels/{channel_id}/sync")
     suspend fun syncPublicChannel(@Path("channel_id") channelId: String): SimpleStatusDto?
 
+    @POST("/api/v1/public-channels/{channel_id}/read")
+    suspend fun markPublicChannelRead(@Path("channel_id") channelId: String): PublicChannelSummaryDto
+
     /** 更新频道资料（名称、简介等）；与创建时 body 结构一致。 */
     @PUT("/api/v1/public-channels/{channel_id}")
     suspend fun updatePublicChannel(

@@ -114,7 +114,7 @@ class DefaultPublicChannelRepository @Inject constructor(
             channelId.trim(),
             PublicChannelUpsertMessageBodyDto(
                 messageType = "text",
-                text = text.trim(),
+                text = text,
                 files = emptyList(),
             ),
         )
@@ -138,7 +138,7 @@ class DefaultPublicChannelRepository @Inject constructor(
         val msg = api.createPublicChannelFileMessage(
             id,
             part,
-            caption.trim().toRequestBody("text/plain; charset=utf-8".toMediaTypeOrNull()),
+            caption.toRequestBody("text/plain; charset=utf-8".toMediaTypeOrNull()),
             mime.toRequestBody("text/plain; charset=utf-8".toMediaTypeOrNull()),
         )
         dao.upsertMessages(listOf(messageDtoToEntity(msg)))
@@ -158,6 +158,14 @@ class DefaultPublicChannelRepository @Inject constructor(
         }
         refreshMessagesInternal(id, limit = 20)
         summaryDtoToDetail(summary)
+    }
+
+    override suspend fun markPublicChannelRead(channelId: String) = withContext(ioDispatcher) {
+        val id = channelId.trim()
+        val summary = api.markPublicChannelRead(id)
+        database.withTransaction {
+            upsertSummaryFromDto(summary, preservePreviewFromDb = true)
+        }
     }
 
     override suspend fun getChannelDetail(channelId: String) = withContext(ioDispatcher) {
@@ -212,7 +220,7 @@ class DefaultPublicChannelRepository @Inject constructor(
             messageId,
             PublicChannelUpsertMessageBodyDto(
                 messageType = "text",
-                text = text.trim(),
+                text = text,
                 files = emptyList(),
             ),
         )
@@ -305,6 +313,7 @@ class DefaultPublicChannelRepository @Inject constructor(
         val avatarUrl = av?.url?.takeIf { it.isNotBlank() }?.let { attachmentUrlBuilder.absoluteUrlOrNull(it) }
             ?: attachmentUrlBuilder.ipfsBlobAbsoluteUrl(blobOrCid)
         val sortMillis = maxOf(p.updatedAt, h.updatedAt).coerceAtLeast(1L) * 1000
+        val s = dto.sync
         return PublicChannelEntity(
             channelId = p.channelId,
             ownerPeerId = p.ownerPeerId,
@@ -314,6 +323,7 @@ class DefaultPublicChannelRepository @Inject constructor(
             lastSeq = h.lastSeq,
             lastActivitySortMillis = sortMillis,
             lastPreview = lastPreviewFallback,
+            unreadCount = s.unreadCount ?: 0,
         )
     }
 
@@ -345,6 +355,7 @@ class DefaultPublicChannelRepository @Inject constructor(
         lastSeq = lastSeq,
         lastActivitySortMillis = lastActivitySortMillis,
         lastPreview = lastPreview,
+        unreadCount = unreadCount,
     )
 
     private fun PublicChannelMessageEntity.toDomain() = PublicChannelMessage(

@@ -169,11 +169,14 @@ class PublicChannelViewModel @Inject constructor(
             runCatching {
                 publicChannelRepository.syncChannelOnOpen(channelId)
             }
+            runCatching {
+                publicChannelRepository.markPublicChannelRead(channelId)
+            }
         }
     }
 
     fun sendText(text: String) {
-        if (text.isBlank()) return
+        if (text.isEmpty()) return
         viewModelScope.launch {
             runCatching { publicChannelRepository.sendText(channelId, text) }
                 .onFailure { e ->
@@ -228,7 +231,7 @@ class PublicChannelViewModel @Inject constructor(
     }
 
     fun updateMessageText(messageId: Long, text: String) {
-        if (text.isBlank()) return
+        if (text.isEmpty()) return
         viewModelScope.launch {
             runCatching { publicChannelRepository.updateMessageText(channelId, messageId, text) }
                 .onFailure { e ->
@@ -525,12 +528,12 @@ fun PublicChannelScreen(
                 TextButton(
                     onClick = {
                         val mid = editing.id.substringAfterLast('_').toLongOrNull()
-                        if (mid != null && editDraft.isNotBlank()) {
+                        if (mid != null && editDraft.isNotEmpty()) {
                             viewModel.updateMessageText(mid, editDraft)
                         }
                         messageToEdit = null
                     },
-                    enabled = editDraft.isNotBlank(),
+                    enabled = editDraft.isNotEmpty(),
                 ) {
                     Text(stringResource(R.string.public_channel_action_save))
                 }

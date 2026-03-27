@@ -145,7 +145,7 @@ class GroupChatViewModel @Inject constructor(
     }
 
     fun sendText(text: String) {
-        if (text.isBlank()) return
+        if (text.isEmpty()) return
         viewModelScope.launch { groupRepository.sendText(groupId, text) }
     }
 
@@ -403,6 +403,8 @@ fun GroupChatScreen(
                 onValueChange = { input = it },
                 label = { Text(stringResource(R.string.input_group_message)) },
                 modifier = Modifier.weight(1f),
+                singleLine = false,
+                maxLines = 6,
             )
             Button(onClick = {
                 viewModel.sendText(input)

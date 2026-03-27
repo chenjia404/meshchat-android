@@ -184,7 +184,7 @@ class DirectChatViewModel @Inject constructor(
     }
 
     fun sendText(text: String) {
-        if (text.isBlank()) return
+        if (text.isEmpty()) return
         viewModelScope.launch { directChatRepository.sendText(conversationId, text) }
     }
 

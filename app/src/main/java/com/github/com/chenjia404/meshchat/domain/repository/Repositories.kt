@@ -107,4 +107,6 @@ interface PublicChannelRepository {
     suspend fun uploadChannelAvatar(channelId: String, file: File)
     suspend fun revokeMessage(channelId: String, messageId: Long)
     suspend fun updateMessageText(channelId: String, messageId: Long, text: String)
+    /** POST /public-channels/{id}/read，清零服务端未读并更新本地摘要 */
+    suspend fun markPublicChannelRead(channelId: String)
 }

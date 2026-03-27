@@ -11,7 +11,7 @@ import com.github.com.chenjia404.meshchat.data.local.entity.PublicChannelMessage
         PublicChannelEntity::class,
         PublicChannelMessageEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class PublicChannelDatabase : RoomDatabase() {

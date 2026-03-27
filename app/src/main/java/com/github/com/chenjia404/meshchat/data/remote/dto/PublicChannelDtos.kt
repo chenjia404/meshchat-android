@@ -51,6 +51,8 @@ data class PublicChannelSyncStateDto(
     @SerializedName("oldest_loaded_message_id") val oldestLoadedMessageId: Long,
     @SerializedName("subscribed") val subscribed: Boolean,
     @SerializedName("updated_at") val updatedAt: Long,
+    /** 订阅列表等接口返回的本地未读数，用于会话角标 */
+    @SerializedName("unread_count") val unreadCount: Int? = null,
 )
 
 data class PublicChannelSummaryDto(

@@ -164,6 +164,7 @@ data class PublicChannel(
     val lastSeq: Long,
     val lastActivitySortMillis: Long,
     val lastPreview: String,
+    val unreadCount: Int = 0,
 )
 
 /** 公开频道简介页：接口聚合 profile / head / sync */

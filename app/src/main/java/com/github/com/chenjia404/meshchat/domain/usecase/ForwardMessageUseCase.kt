@@ -46,7 +46,7 @@ class ForwardMessageUseCase @Inject constructor(
                     AttachmentRenderType.SYSTEM -> plainText.ifBlank { subtitle }
                     else -> ""
                 }
-                require(text.isNotBlank()) { "无可转发的文本" }
+                require(text.isNotEmpty()) { "无可转发的文本" }
                 destinations.forEach { dest ->
                     when (dest) {
                         is ForwardDestination.Direct ->

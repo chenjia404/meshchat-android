@@ -92,7 +92,7 @@ fun DirectChatInputBar(
         }
         Button(
             onClick = onSendText,
-            enabled = !voiceOverlayVisible && inputMode == ChatInputMode.TEXT && text.isNotBlank(),
+            enabled = !voiceOverlayVisible && inputMode == ChatInputMode.TEXT && text.isNotEmpty(),
             shape = RoundedCornerShape(24.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF3B5778),

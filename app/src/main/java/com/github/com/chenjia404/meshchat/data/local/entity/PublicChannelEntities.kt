@@ -18,6 +18,8 @@ data class PublicChannelEntity(
     /** 用于与会话列表合并排序（毫秒） */
     val lastActivitySortMillis: Long,
     val lastPreview: String,
+    /** 来自 sync.unread_count，会话列表角标 */
+    val unreadCount: Int = 0,
 )
 
 @Entity(

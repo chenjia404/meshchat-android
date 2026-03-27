@@ -197,7 +197,7 @@ class ChatListViewModel @Inject constructor(
                 bioFallback = ch.bio,
                 timeDisplayRaw = iso,
                 avatarUrl = ch.avatarUrl,
-                unreadCount = 0,
+                unreadCount = ch.unreadCount,
                 target = ChatListNavigateTarget.PublicChannel(ch.channelId),
             )
         }

@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.com.chenjia404.meshchat.core.util.formatChatMessageLineTime
+import com.github.com.chenjia404.meshchat.core.util.normalizeMessageNewlines
 import com.github.com.chenjia404.meshchat.core.util.formatMessageStateLabel
 import com.github.com.chenjia404.meshchat.core.util.isFailedMessageState
 import coil.compose.AsyncImage
@@ -256,21 +257,24 @@ fun ChatMessageBubble(
                 // 短消息随内容变窄；长消息在 max 内换行，配合 Column 的 End/Start 对齐实现靠右/靠左
                 modifier = Modifier.widthIn(max = maxBubbleWidth),
             ) {
+                val textMax = maxBubbleWidth - 24.dp
+                // 限制内容区最大宽度，子 Text 才能获得有限 maxWidth，否则易按单行测量、多行被压成一行
                 Column(
-                    modifier = Modifier.padding(12.dp),
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .widthIn(max = textMax),
                 ) {
-                    val textMax = maxBubbleWidth - 24.dp
                     when (message.renderType) {
                         AttachmentRenderType.TEXT -> Text(
-                            text = message.text,
+                            text = message.text.normalizeMessageNewlines(),
                             color = onBubble,
                             style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.widthIn(max = textMax),
+                            softWrap = true,
                         )
                         AttachmentRenderType.SYSTEM -> Text(
-                            text = message.text.ifBlank { message.subtitle },
+                            text = message.text.ifBlank { message.subtitle }.normalizeMessageNewlines(),
                             color = onBubble,
-                            modifier = Modifier.widthIn(max = textMax),
+                            softWrap = true,
                         )
                         AttachmentRenderType.AUDIO -> {
                             ChatVoiceMessageBar(
@@ -288,12 +292,17 @@ fun ChatMessageBubble(
                                 Spacer(modifier = Modifier.height(8.dp))
                             }
                             Text(
-                                text = message.fileName ?: "附件",
+                                text = (message.fileName ?: "附件").normalizeMessageNewlines(),
                                 fontWeight = FontWeight.SemiBold,
                                 color = onBubble,
+                                softWrap = true,
                             )
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text(text = message.subtitle, color = onBubbleMuted)
+                            Text(
+                                text = message.subtitle.normalizeMessageNewlines(),
+                                color = onBubbleMuted,
+                                softWrap = true,
+                            )
                         }
                     }
                 }
