@@ -105,8 +105,17 @@ fun MeshChatNavHost(
         "create_public_channel",
         "subscribe_public_channel",
         "join_super_group",
+        "super_group_intro/{groupId}",
         "share_incoming",
     )
+
+    fun shouldShowBottomBar(route: String?): Boolean {
+        if (route == null) return true
+        if (route in fullScreenRoutes) return false
+        // 部分环境下 route 为已填充路径，与模板不一致
+        if (route.startsWith("super_group_intro/")) return false
+        return true
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
@@ -114,7 +123,7 @@ fun MeshChatNavHost(
             val backStackEntry by navController.currentBackStackEntryAsState()
             val currentDestination = backStackEntry?.destination
             val currentRoute = currentDestination?.route
-            if (currentRoute !in fullScreenRoutes) {
+            if (shouldShowBottomBar(currentRoute)) {
                 NavigationBar {
                     destinations.forEach { destination ->
                         NavigationBarItem(
