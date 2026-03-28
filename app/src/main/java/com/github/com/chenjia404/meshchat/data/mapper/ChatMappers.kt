@@ -230,6 +230,8 @@ fun GroupDto.toDomain() = Group(
     localMemberState = localMemberState,
     createdAt = createdAt,
     updatedAt = updatedAt,
+    isSuperGroup = false,
+    superGroupApiBaseUrl = null,
 )
 
 fun Group.toEntity() = GroupEntity(
@@ -247,6 +249,8 @@ fun Group.toEntity() = GroupEntity(
     localMemberState,
     createdAt,
     updatedAt,
+    isSuperGroup,
+    superGroupApiBaseUrl,
 )
 
 fun GroupEntity.toDomain() = Group(
@@ -264,6 +268,8 @@ fun GroupEntity.toDomain() = Group(
     localMemberState,
     createdAt,
     updatedAt,
+    isSuperGroup,
+    superGroupApiBaseUrl,
 )
 
 fun GroupDeliverySummaryDto.toDomain() = GroupDeliverySummary(
@@ -280,6 +286,7 @@ fun GroupMessageDto.toDomain() = GroupMessage(
     groupId = groupId,
     epoch = epoch,
     senderPeerId = senderPeerId,
+    senderLabel = null,
     senderSeq = senderSeq,
     msgType = msgType,
     plaintext = plaintext,
@@ -298,6 +305,7 @@ fun GroupMessage.toEntity() = GroupMessageEntity(
     groupId,
     epoch,
     senderPeerId,
+    senderLabel,
     senderSeq,
     msgType,
     plaintext,
@@ -321,6 +329,7 @@ fun GroupMessageEntity.toDomain() = GroupMessage(
     groupId,
     epoch,
     senderPeerId,
+    senderLabel,
     senderSeq,
     msgType,
     plaintext,

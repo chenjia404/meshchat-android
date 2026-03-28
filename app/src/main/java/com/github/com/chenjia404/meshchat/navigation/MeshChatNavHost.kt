@@ -42,6 +42,8 @@ import com.github.com.chenjia404.meshchat.feature.contacts.ContactsScreen
 import com.github.com.chenjia404.meshchat.feature.directchat.DirectChatScreen
 import com.github.com.chenjia404.meshchat.feature.groups.GroupsScreen
 import com.github.com.chenjia404.meshchat.feature.groups.CreateGroupScreen
+import com.github.com.chenjia404.meshchat.feature.groups.JoinSuperGroupScreen
+import com.github.com.chenjia404.meshchat.feature.groups.SuperGroupIntroScreen
 import com.github.com.chenjia404.meshchat.feature.groupchat.GroupChatScreen
 import com.github.com.chenjia404.meshchat.feature.media.AudioPlayerScreen
 import com.github.com.chenjia404.meshchat.feature.media.ImagePreviewScreen
@@ -102,6 +104,7 @@ fun MeshChatNavHost(
         "public_channel_detail/{channelId}",
         "create_public_channel",
         "subscribe_public_channel",
+        "join_super_group",
         "share_incoming",
     )
 
@@ -146,6 +149,8 @@ fun MeshChatNavHost(
                                 navController.navigate("direct_chat/${target.conversationId}/${target.entryUnread}")
                             is ChatListNavigateTarget.PublicChannel ->
                                 navController.navigate("public_channel/${target.channelId}")
+                            is ChatListNavigateTarget.GroupChat ->
+                                navController.navigate("group_chat/${target.groupId}")
                         }
                     },
                 )
@@ -166,6 +171,9 @@ fun MeshChatNavHost(
                     },
                     onSubscribePublicChannelClick = {
                         navController.navigate("subscribe_public_channel")
+                    },
+                    onJoinSuperGroupClick = {
+                        navController.navigate("join_super_group")
                     },
                 )
             }
@@ -209,6 +217,16 @@ fun MeshChatNavHost(
                     onSubscribed = { channelId ->
                         navController.navigate("public_channel/$channelId") {
                             popUpTo("subscribe_public_channel") { inclusive = true }
+                        }
+                    },
+                )
+            }
+            composable("join_super_group") {
+                JoinSuperGroupScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onJoined = { groupId ->
+                        navController.navigate("group_chat/$groupId") {
+                            popUpTo("join_super_group") { inclusive = true }
                         }
                     },
                 )
@@ -280,7 +298,8 @@ fun MeshChatNavHost(
             composable(
                 route = "group_chat/{groupId}",
                 arguments = listOf(navArgument("groupId") { type = NavType.StringType }),
-            ) {
+            ) { backStackEntry ->
+                val gid = backStackEntry.arguments?.getString("groupId").orEmpty()
                 GroupChatScreen(
                     onBackClick = { navController.popBackStack() },
                     onOpenImage = { url, title ->
@@ -291,6 +310,21 @@ fun MeshChatNavHost(
                     },
                     onOpenAudio = { url, title ->
                         navController.navigate("audio_player/${Uri.encode(url)}/${Uri.encode(title)}")
+                    },
+                    onOpenSuperGroupIntro = {
+                        navController.navigate("super_group_intro/$gid")
+                    },
+                )
+            }
+            composable(
+                route = "super_group_intro/{groupId}",
+                arguments = listOf(navArgument("groupId") { type = NavType.StringType }),
+            ) {
+                SuperGroupIntroScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onLeftGroup = {
+                        navController.popBackStack()
+                        navController.popBackStack()
                     },
                 )
             }

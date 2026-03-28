@@ -97,6 +97,9 @@ data class Group(
     val localMemberState: String?,
     val createdAt: String,
     val updatedAt: String,
+    val isSuperGroup: Boolean = false,
+    /** 超级群 API 基址；仅超级群有值 */
+    val superGroupApiBaseUrl: String? = null,
 )
 
 data class GroupDeliverySummary(
@@ -113,6 +116,7 @@ data class GroupMessage(
     val groupId: String,
     val epoch: Long?,
     val senderPeerId: String,
+    val senderLabel: String? = null,
     val senderSeq: Long?,
     val msgType: String,
     val plaintext: String?,
@@ -183,6 +187,20 @@ data class PublicChannelDetail(
     val subscribed: Boolean,
     val lastSeenSeq: Long,
     val lastSyncedSeq: Long,
+)
+
+/** 超级群简介页一次拉取的展示数据（meshchat-server） */
+data class SuperGroupIntroSnapshot(
+    val title: String,
+    val about: String?,
+    val avatarCid: String?,
+    /** `visible` / `hidden` */
+    val memberListVisibility: String?,
+    /** `invite_only` / `open` */
+    val joinMode: String?,
+    val canInvite: Boolean,
+    /** 群主/管理员可编辑群资料（与邀请权限一致，服务端另以 PERM_EDIT_GROUP_INFO 校验） */
+    val canEditGroupInfo: Boolean,
 )
 
 data class PublicChannelMessage(

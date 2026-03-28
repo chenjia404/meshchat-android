@@ -30,7 +30,7 @@ import com.github.com.chenjia404.meshchat.data.local.entity.ProfileEntity
         GroupMessageEntity::class,
         ChatEventEntity::class,
     ],
-    version = 1,
+    version = 3,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {

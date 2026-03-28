@@ -100,6 +100,10 @@ data class GroupEntity(
     val localMemberState: String?,
     val createdAt: String,
     val updatedAt: String,
+    /** `true` 表示 meshchat-server 超级群（路径 `/groups/...`），与普通 meshproxy 群区分 */
+    val isSuperGroup: Boolean = false,
+    /** 超级群 HTTP API 根地址（如 `https://chat-api.example.com/`），可与设置中的 meshproxy 不同 */
+    val superGroupApiBaseUrl: String? = null,
 )
 
 @Entity(tableName = "group_messages")
@@ -108,6 +112,8 @@ data class GroupMessageEntity(
     val groupId: String,
     val epoch: Long?,
     val senderPeerId: String,
+    /** 超级群展示用（meshchat-server 无 peer_id，存 display_name / username） */
+    val senderLabel: String?,
     val senderSeq: Long?,
     val msgType: String,
     val plaintext: String?,

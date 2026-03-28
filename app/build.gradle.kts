@@ -13,8 +13,8 @@ android {
         applicationId = "com.github.com.chenjia404.meshchat"
         minSdk = 26
         targetSdk = 34
-        versionCode = 7
-        versionName = "1.0.7"
+        versionCode = 8
+        versionName = "1.0.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -53,6 +53,8 @@ android {
         }
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            // BouncyCastle 等多版本 JAR 会带 META-INF/versions/*/...，合并 APK 时重复路径告警
+            excludes += "/META-INF/versions/**"
         }
     }
 }
@@ -94,6 +96,9 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     implementation("com.google.code.gson:gson:2.10.1")
+
+    // libp2p 风格 Ed25519 私钥（PEM / protobuf）解析与 meshchat-server challenge 签名
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.78.1")
 
     implementation("io.coil-kt:coil-compose:2.5.0")
     implementation("io.coil-kt:coil-video:2.5.0")

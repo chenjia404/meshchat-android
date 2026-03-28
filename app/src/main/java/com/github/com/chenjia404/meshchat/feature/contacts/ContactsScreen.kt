@@ -199,6 +199,7 @@ fun ContactsScreen(
     onCreateGroupClick: () -> Unit,
     onCreatePublicChannelClick: () -> Unit,
     onSubscribePublicChannelClick: () -> Unit,
+    onJoinSuperGroupClick: () -> Unit,
     viewModel: ContactsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -251,6 +252,13 @@ fun ContactsScreen(
                         onClick = {
                             expanded = false
                             onSubscribePublicChannelClick()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.contacts_join_super_group)) },
+                        onClick = {
+                            expanded = false
+                            onJoinSuperGroupClick()
                         },
                     )
                 }

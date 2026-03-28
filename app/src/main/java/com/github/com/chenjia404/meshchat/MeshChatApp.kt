@@ -10,6 +10,8 @@ import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+import java.security.Security
 
 @HiltAndroidApp
 class MeshChatApp : Application() {
@@ -28,6 +30,9 @@ class MeshChatApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
+            Security.addProvider(BouncyCastleProvider())
+        }
         Coil.setImageLoader(imageLoader)
         if (binaryRuntime.startIfNeeded()) {
             appCoordinator.start()

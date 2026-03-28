@@ -46,10 +46,12 @@ import com.github.com.chenjia404.meshchat.core.util.formatConversationListRelati
 import com.github.com.chenjia404.meshchat.core.util.renderConversationPreview
 import com.github.com.chenjia404.meshchat.domain.repository.ContactsRepository
 import com.github.com.chenjia404.meshchat.domain.repository.DirectChatRepository
+import com.github.com.chenjia404.meshchat.domain.repository.GroupRepository
 import com.github.com.chenjia404.meshchat.domain.repository.PublicChannelRepository
 import com.github.com.chenjia404.meshchat.service.storage.ChatAttachmentUrlBuilder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -61,6 +63,7 @@ import java.time.Instant
 sealed class ChatListNavigateTarget {
     data class DirectChat(val conversationId: String, val entryUnread: Int) : ChatListNavigateTarget()
     data class PublicChannel(val channelId: String) : ChatListNavigateTarget()
+    data class GroupChat(val groupId: String) : ChatListNavigateTarget()
 }
 
 data class ChatListMergedRow(
@@ -126,10 +129,12 @@ private fun ConversationUnreadBadge(count: Int) {
     }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
     directChatRepository: DirectChatRepository,
     contactsRepository: ContactsRepository,
+    groupRepository: GroupRepository,
     publicChannelRepository: PublicChannelRepository,
     private val attachmentUrlBuilder: ChatAttachmentUrlBuilder,
 ) : ViewModel() {
@@ -183,10 +188,43 @@ class ChatListViewModel @Inject constructor(
         }
     }
 
+    private val groupRowsFlow = groupRepository.groups.flatMapLatest { groups ->
+        if (groups.isEmpty()) {
+            flowOf(emptyList())
+        } else {
+            combine(groups.map { groupRepository.observeLatestGroupMessage(it.groupId) }) { latestMessages ->
+                groups.mapIndexed { index, g ->
+                    val latest = latestMessages[index]
+                    val timeRaw = latest?.createdAt ?: g.lastMessageAt ?: g.updatedAt
+                    ChatListMergedRow(
+                        stableKey = "g:${g.groupId}",
+                        sortKeyMillis = timeRaw.toSortMillis(),
+                        title = g.title.ifBlank { g.groupId },
+                        publicPreview = "",
+                        bioFallback = "",
+                        timeDisplayRaw = timeRaw,
+                        avatarUrl = if (g.isSuperGroup) {
+                            attachmentUrlBuilder.ipfsBlobAbsoluteUrl(g.avatar)
+                        } else {
+                            attachmentUrlBuilder.avatarUrl(g.avatar)
+                        },
+                        unreadCount = 0,
+                        target = ChatListNavigateTarget.GroupChat(g.groupId),
+                        latestMsgType = latest?.msgType,
+                        latestPlaintext = latest?.plaintext,
+                        latestMimeType = latest?.mimeType,
+                        latestFileName = latest?.fileName,
+                    )
+                }
+            }
+        }
+    }
+
     val uiState: StateFlow<ChatListUiState> = combine(
         directRowsFlow,
+        groupRowsFlow,
         publicChannelRepository.channels,
-    ) { directRows, publicChannels ->
+    ) { directRows, groupRows, publicChannels ->
         val publicRows = publicChannels.map { ch ->
             val iso = Instant.ofEpochMilli(ch.lastActivitySortMillis).toString()
             ChatListMergedRow(
@@ -202,7 +240,7 @@ class ChatListViewModel @Inject constructor(
             )
         }
         ChatListUiState(
-            rows = (directRows + publicRows).sortedByDescending { it.sortKeyMillis },
+            rows = (directRows + groupRows + publicRows).sortedByDescending { it.sortKeyMillis },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ChatListUiState())
 }
@@ -234,6 +272,14 @@ fun ChatListScreen(
                     ).ifBlank { item.bioFallback }
                 is ChatListNavigateTarget.PublicChannel ->
                     item.publicPreview.ifBlank { item.bioFallback }
+                is ChatListNavigateTarget.GroupChat ->
+                    renderConversationPreview(
+                        resources,
+                        item.latestMsgType,
+                        item.latestPlaintext,
+                        item.latestMimeType,
+                        item.latestFileName,
+                    ).ifBlank { item.bioFallback }
             }
             val timeText = formatConversationListRelativeTime(resources, item.timeDisplayRaw)
             Row(

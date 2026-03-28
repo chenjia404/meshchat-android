@@ -19,6 +19,9 @@ interface ProfileDao {
     @Query("SELECT * FROM profiles LIMIT 1")
     fun observeProfile(): Flow<ProfileEntity?>
 
+    @Query("SELECT * FROM profiles LIMIT 1")
+    suspend fun getProfileOnce(): ProfileEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(profile: ProfileEntity)
 }
@@ -110,6 +113,21 @@ interface GroupDao {
     @Query("SELECT * FROM groups WHERE groupId = :groupId LIMIT 1")
     fun observeGroup(groupId: String): Flow<GroupEntity?>
 
+    @Query("SELECT * FROM groups WHERE groupId = :groupId LIMIT 1")
+    suspend fun getGroupOnce(groupId: String): GroupEntity?
+
+    @Query("SELECT groupId FROM groups WHERE isSuperGroup = 1")
+    suspend fun getSuperGroupIds(): List<String>
+
+    @Query(
+        "SELECT DISTINCT superGroupApiBaseUrl FROM groups WHERE isSuperGroup = 1 " +
+            "AND superGroupApiBaseUrl IS NOT NULL AND superGroupApiBaseUrl != ''",
+    )
+    suspend fun getDistinctSuperGroupApiBaseUrls(): List<String>
+
+    @Query("SELECT * FROM groups WHERE isSuperGroup = 1")
+    suspend fun getAllSuperGroupEntities(): List<GroupEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(items: List<GroupEntity>)
 
@@ -118,6 +136,12 @@ interface GroupDao {
 
     @Query("DELETE FROM groups")
     suspend fun clearAll()
+
+    @Query("DELETE FROM groups WHERE isSuperGroup = 0")
+    suspend fun deleteMeshProxyGroupsOnly()
+
+    @Query("DELETE FROM groups WHERE groupId = :groupId")
+    suspend fun deleteByGroupId(groupId: String)
 
     @Query(
         "UPDATE groups SET retentionMinutes = :minutes, updatedAt = :updatedAt WHERE groupId = :groupId",
@@ -129,6 +153,9 @@ interface GroupDao {
 interface GroupMessageDao {
     @Query("SELECT * FROM group_messages WHERE groupId = :groupId ORDER BY createdAt ASC")
     fun observeMessages(groupId: String): Flow<List<GroupMessageEntity>>
+
+    @Query("SELECT * FROM group_messages WHERE groupId = :groupId ORDER BY createdAt DESC LIMIT 1")
+    fun observeLatestMessage(groupId: String): Flow<GroupMessageEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(items: List<GroupMessageEntity>)

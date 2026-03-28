@@ -1,6 +1,8 @@
 package com.github.com.chenjia404.meshchat.service.storage
 
 import com.github.com.chenjia404.meshchat.core.datastore.SettingsStore
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -60,6 +62,17 @@ class ChatAttachmentUrlBuilder @Inject constructor(
         if (id.isEmpty()) return null
         val base = settingsStore.currentBaseUrl().trimEnd('/')
         return "$base/ipfs/$id"
+    }
+
+    /**
+     * meshchat-server / meshproxy 网关：`GET /ipfs/{cid}/?filename=...`
+     */
+    fun ipfsGatewayUrlWithFilename(cid: String?, fileName: String?): String? {
+        val base = ipfsBlobAbsoluteUrl(cid) ?: return null
+        val fn = fileName?.trim().orEmpty()
+        if (fn.isEmpty()) return base
+        val q = URLEncoder.encode(fn, StandardCharsets.UTF_8.toString())
+        return if (base.contains('?')) "$base&filename=$q" else "$base?filename=$q"
     }
 
     /**

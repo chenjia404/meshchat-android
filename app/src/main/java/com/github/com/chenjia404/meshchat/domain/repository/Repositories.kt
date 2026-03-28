@@ -11,6 +11,7 @@ import com.github.com.chenjia404.meshchat.domain.model.Profile
 import com.github.com.chenjia404.meshchat.domain.model.PublicChannel
 import com.github.com.chenjia404.meshchat.domain.model.PublicChannelDetail
 import com.github.com.chenjia404.meshchat.domain.model.PublicChannelMessage
+import com.github.com.chenjia404.meshchat.domain.model.SuperGroupIntroSnapshot
 import java.io.File
 import kotlinx.coroutines.flow.Flow
 
@@ -63,6 +64,7 @@ interface GroupRepository {
     val groups: Flow<List<Group>>
     fun observeGroup(groupId: String): Flow<Group?>
     fun observeMessages(groupId: String): Flow<List<GroupMessage>>
+    fun observeLatestGroupMessage(groupId: String): Flow<GroupMessage?>
     suspend fun refreshGroups()
     suspend fun refreshGroup(groupId: String)
     suspend fun refreshMessages(groupId: String)
@@ -81,6 +83,45 @@ interface GroupRepository {
     suspend fun sendFile(groupId: String, file: File)
     suspend fun revokeMessage(groupId: String, msgId: String)
     suspend fun syncGroup(groupId: String, fromPeerId: String)
+    /**
+     * 解析 `{base_url}/groups/{group_id}` 完整链接；[base_url] 为链接里的主机（可与「设置」中的 meshproxy 不同）。
+     * 对该主机调用 `POST /groups/{group_id}/join` 并持久化基址，后续收发消息均访问该主机。
+     */
+    /** @return 加入成功的 [group_id] */
+    suspend fun joinSuperGroupByInviteUrl(rawUrl: String): String
+
+    /** 拉取 meshchat-server 群详情与成员，判断当前用户是否可邀请（群主/管理员）。非超级群返回 null。 */
+    suspend fun loadSuperGroupIntroSnapshot(groupId: String): SuperGroupIntroSnapshot?
+
+    /** `POST /groups/{group_id}/members/invite`，[peerIds] 为 libp2 peer_id 列表。 */
+    suspend fun inviteSuperGroupMembersByPeerIds(groupId: String, peerIds: List<String>)
+
+    /**
+     * 将头像等文件上传至 meshchat-server `POST api/ipfs/add` 并 `POST /files` 登记，返回 **cid**，再用于 [updateSuperGroupInfo] 的 `avatar_cid`。
+     */
+    suspend fun uploadSuperGroupAvatarToIpfs(groupId: String, file: File): String
+
+    /** `PATCH /groups/{group_id}`；[avatarCid] 为 null 时不修改头像；[memberListVisibility]/[joinMode] 为 null 时不带该字段。 */
+    suspend fun updateSuperGroupInfo(
+        groupId: String,
+        title: String,
+        about: String,
+        avatarCid: String?,
+        memberListVisibility: String?,
+        joinMode: String?,
+    )
+
+    /**
+     * 对已记录的 meshchat-server 根地址集合（及本地超级群已有基址）逐个登录并 [GET /me/groups] 分页拉取，
+     * 与本地 `groups` 表合并；若某服务器上已无该群则删除本机对应超级群会话。
+     */
+    suspend fun syncSuperGroupsFromAllKnownServers()
+
+    /**
+     * 将当前本地资料 [PATCH /users/{peer_id}/profile] 推送到所有已知 meshchat-server；
+     * 单台失败（网络/5xx 等）仅记录日志，不影响其它服务器。
+     */
+    suspend fun pushLocalProfileToAllKnownMeshChatServers()
 }
 
 interface ChatEventsRepository {
