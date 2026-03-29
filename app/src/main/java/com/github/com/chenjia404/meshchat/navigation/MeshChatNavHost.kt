@@ -72,7 +72,7 @@ fun MeshChatNavHost(
 
     LaunchedEffect(pendingShare) {
         val p = pendingShare
-        if (p != null && p.uris.isNotEmpty()) {
+        if (p != null && p.hasContent) {
             navController.navigate("share_incoming") {
                 launchSingleTop = true
             }

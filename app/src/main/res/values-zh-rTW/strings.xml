@@ -160,6 +160,8 @@
 
     <string name="share_targets_title">分享到會話</string>
     <string name="share_targets_subtitle">已選擇 %1$d 個檔案</string>
+    <string name="share_targets_subtitle_text_only">一段文字</string>
+    <string name="share_targets_subtitle_files_and_text">%1$d 個檔案 + 文字</string>
     <string name="share_targets_empty">暫無會話，請先發起私聊、加入群聊或訂閱公開頻道。</string>
     <string name="share_targets_send">傳送</string>
     <string name="share_targets_toast_sent">已傳送</string>

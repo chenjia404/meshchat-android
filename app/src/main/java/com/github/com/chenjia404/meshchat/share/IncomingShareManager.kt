@@ -12,7 +12,12 @@ import javax.inject.Singleton
 data class IncomingSharePayload(
     val uris: List<Uri>,
     val mimeType: String?,
-)
+    /** 系统「分享文字」等场景（无 EXTRA_STREAM） */
+    val plainText: String? = null,
+) {
+    val hasContent: Boolean
+        get() = uris.isNotEmpty() || !plainText.isNullOrBlank()
+}
 
 @Singleton
 class IncomingShareManager @Inject constructor() {
@@ -21,13 +26,28 @@ class IncomingShareManager @Inject constructor() {
     val pending: StateFlow<IncomingSharePayload?> = _pending.asStateFlow()
 
     fun setFromIntent(intent: Intent?) {
+        if (intent == null) {
+            _pending.value = null
+            return
+        }
         val uris = extractShareUris(intent)
-        _pending.value = if (uris.isEmpty()) null else IncomingSharePayload(uris, intent?.type)
+        val plainText = extractSharePlainText(intent)
+        _pending.value = when {
+            uris.isNotEmpty() -> IncomingSharePayload(uris, intent.type, plainText)
+            !plainText.isNullOrBlank() -> IncomingSharePayload(emptyList(), intent.type, plainText)
+            else -> null
+        }
     }
 
     fun clear() {
         _pending.value = null
     }
+}
+
+private fun extractSharePlainText(intent: Intent): String? {
+    val action = intent.action ?: return null
+    if (action != Intent.ACTION_SEND && action != Intent.ACTION_SEND_MULTIPLE) return null
+    return intent.getStringExtra(Intent.EXTRA_TEXT)?.trim()?.takeIf { it.isNotEmpty() }
 }
 
 fun extractShareUris(intent: Intent?): List<Uri> {

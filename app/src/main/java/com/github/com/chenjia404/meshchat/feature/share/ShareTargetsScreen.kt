@@ -83,9 +83,16 @@ fun ShareTargetsScreen(
                     style = MaterialTheme.typography.titleLarge,
                 )
                 pending?.let { p ->
-                    val n = p.uris.size
+                    val sub = when {
+                        p.uris.isNotEmpty() && !p.plainText.isNullOrBlank() ->
+                            stringResource(R.string.share_targets_subtitle_files_and_text, p.uris.size)
+                        p.uris.isNotEmpty() ->
+                            stringResource(R.string.share_targets_subtitle, p.uris.size)
+                        else ->
+                            stringResource(R.string.share_targets_subtitle_text_only)
+                    }
                     Text(
-                        stringResource(R.string.share_targets_subtitle, n),
+                        sub,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -110,7 +117,7 @@ fun ShareTargetsScreen(
                         }
                     }
                 },
-                enabled = selected.isNotEmpty() && !sending && pending != null,
+                enabled = selected.isNotEmpty() && !sending && pending?.hasContent == true,
             ) {
                 if (sending) {
                     CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)

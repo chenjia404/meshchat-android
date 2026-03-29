@@ -35,7 +35,7 @@ class ShareTargetsViewModel @Inject constructor(
         onFinished: (ok: Boolean, err: String?) -> Unit,
     ) {
         val payload = incomingShareManager.pending.value
-        if (payload == null || payload.uris.isEmpty()) {
+        if (payload == null || !payload.hasContent) {
             onFinished(false, null)
             return
         }
@@ -71,6 +71,19 @@ class ShareTargetsViewModel @Inject constructor(
                             }
                         } finally {
                             source.delete()
+                        }
+                    }
+                    val text = payload.plainText?.trim()?.takeIf { it.isNotEmpty() }
+                    if (text != null) {
+                        for (dest in destinations) {
+                            when (dest) {
+                                is ForwardDestination.Direct ->
+                                    directChatRepository.sendText(dest.conversationId, text)
+                                is ForwardDestination.Group ->
+                                    groupRepository.sendText(dest.groupId, text)
+                                is ForwardDestination.PublicChannel ->
+                                    publicChannelRepository.sendText(dest.channelId, text)
+                            }
                         }
                     }
                 }
