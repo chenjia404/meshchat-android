@@ -1,5 +1,6 @@
 package com.github.com.chenjia404.meshchat.service.storage
 
+import android.net.Uri
 import com.github.com.chenjia404.meshchat.core.datastore.SettingsStore
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -28,7 +29,8 @@ class ChatAttachmentUrlBuilder @Inject constructor(
      * 若接口未实现 GET，可配合 [absoluteUrlOrNull] 使用消息 JSON 内 `url`。
      */
     fun publicChannelFileUrl(channelId: String, messageId: Long): String {
-        return "${settingsStore.currentBaseUrl()}api/v1/public-channels/$channelId/messages/$messageId/file"
+        val id = Uri.encode(channelId.trim())
+        return "${settingsStore.currentBaseUrl()}api/v1/public-channels/$id/messages/$messageId/file"
     }
 
     /** 将相对路径或完整 URL 补全为可请求的绝对地址 */

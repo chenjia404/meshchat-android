@@ -251,6 +251,12 @@
 
     <string name="default_attachment_filename">meshchat-attachment</string>
 
+    <string name="subscribe_public_channel_title">訂閱公開頻道</string>
+    <string name="subscribe_public_channel_subtitle">輸入頻道 ID：owner 的 libp2p peer_id，冒號，再加 UUIDv7（例如 12D3KooW…:xxxxxxxx-xxxx-7xxx-xxxx-xxxxxxxxxxxx）</string>
+    <string name="label_channel_uuid">頻道 ID</string>
+    <string name="subscribe_public_channel_button">訂閱</string>
+    <string name="error_invalid_channel_uuid">無效的頻道 ID，格式須為：libp2p peer_id:UUIDv7</string>
+
     <string name="public_channel_profile_title">頻道簡介</string>
     <string name="public_channel_profile_load_error">載入失敗</string>
     <string name="public_channel_action_retry">重試</string>
@@ -261,7 +267,7 @@
     <string name="public_channel_change_avatar">更換頭像</string>
     <string name="public_channel_toast_avatar_updated">頭像已更新</string>
     <string name="label_owner_peer_id">頻道主 peer_id</string>
-    <string name="public_channel_copy_uuid">複製 UUID</string>
+    <string name="public_channel_copy_uuid">複製頻道 ID</string>
     <string name="public_channel_copy_owner">複製頻道主 ID</string>
     <string name="label_public_channel_meta">版本與同步</string>
     <string name="public_channel_meta_line">profile_v=%1$d · owner_v=%2$d · last_seq=%3$d · last_msg=%4$d · %5$s · last_seen=%6$d · synced=%7$d</string>

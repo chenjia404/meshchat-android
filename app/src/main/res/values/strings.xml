@@ -260,10 +260,10 @@
     <string name="toast_channel_name_required">请输入频道名称</string>
 
     <string name="subscribe_public_channel_title">订阅公开频道</string>
-    <string name="subscribe_public_channel_subtitle">输入频道的 UUID（UUIDv7）</string>
-    <string name="label_channel_uuid">频道 UUID</string>
+    <string name="subscribe_public_channel_subtitle">输入频道 ID：owner 的 libp2p peer_id，冒号，再加 UUIDv7（例如 12D3KooW…:xxxxxxxx-xxxx-7xxx-xxxx-xxxxxxxxxxxx）</string>
+    <string name="label_channel_uuid">频道 ID</string>
     <string name="subscribe_public_channel_button">订阅</string>
-    <string name="error_invalid_channel_uuid">无效的频道 UUID，需为 UUIDv7 格式</string>
+    <string name="error_invalid_channel_uuid">无效的频道 ID，格式须为：libp2p peer_id:UUIDv7</string>
 
     <string name="public_channel_read_only_hint">你不是频道 owner，仅可查看与转发。</string>
     <string name="public_channel_input_hint">输入消息…</string>
@@ -281,7 +281,7 @@
     <string name="public_channel_change_avatar">更换头像</string>
     <string name="public_channel_toast_avatar_updated">头像已更新</string>
     <string name="label_owner_peer_id">频道主 peer_id</string>
-    <string name="public_channel_copy_uuid">复制 UUID</string>
+    <string name="public_channel_copy_uuid">复制频道 ID</string>
     <string name="public_channel_copy_owner">复制频道主 ID</string>
     <string name="label_public_channel_meta">版本与同步</string>
     <string name="public_channel_meta_line">profile_v=%1$d · owner_v=%2$d · last_seq=%3$d · last_msg=%4$d · %5$s · last_seen=%6$d · synced=%7$d</string>

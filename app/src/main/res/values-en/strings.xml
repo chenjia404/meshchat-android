@@ -259,10 +259,10 @@
     <string name="toast_channel_name_required">Please enter a channel name</string>
 
     <string name="subscribe_public_channel_title">Subscribe to channel</string>
-    <string name="subscribe_public_channel_subtitle">Enter the channel UUID (UUIDv7)</string>
-    <string name="label_channel_uuid">Channel UUID</string>
+    <string name="subscribe_public_channel_subtitle">Channel ID: owner libp2p peer_id, colon, then UUIDv7 (e.g. 12D3KooW…:xxxxxxxx-xxxx-7xxx-xxxx-xxxxxxxxxxxx)</string>
+    <string name="label_channel_uuid">Channel ID</string>
     <string name="subscribe_public_channel_button">Subscribe</string>
-    <string name="error_invalid_channel_uuid">Invalid channel UUID. UUIDv7 is required.</string>
+    <string name="error_invalid_channel_uuid">Invalid channel ID. Expected: libp2p peer_id:UUIDv7</string>
 
     <string name="public_channel_read_only_hint">You are not the owner; only viewing and forwarding are available.</string>
     <string name="public_channel_input_hint">Message…</string>
@@ -280,7 +280,7 @@
     <string name="public_channel_change_avatar">Change avatar</string>
     <string name="public_channel_toast_avatar_updated">Avatar updated</string>
     <string name="label_owner_peer_id">Owner peer_id</string>
-    <string name="public_channel_copy_uuid">Copy UUID</string>
+    <string name="public_channel_copy_uuid">Copy channel ID</string>
     <string name="public_channel_copy_owner">Copy owner ID</string>
     <string name="label_public_channel_meta">Version &amp; sync</string>
     <string name="public_channel_meta_line">profile_v=%1$d · owner_v=%2$d · last_seq=%3$d · last_msg=%4$d · %5$s · last_seen=%6$d · synced=%7$d</string>

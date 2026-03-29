@@ -33,8 +33,8 @@ import com.github.com.chenjia404.meshchat.R
 import com.github.com.chenjia404.meshchat.domain.repository.PublicChannelRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import com.github.com.chenjia404.meshchat.core.util.PublicChannelIdValidator
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 @HiltViewModel
 class SubscribePublicChannelViewModel @Inject constructor(
@@ -46,12 +46,6 @@ class SubscribePublicChannelViewModel @Inject constructor(
         }
     }
 }
-
-private fun isUuidV7(raw: String): Boolean =
-    runCatching {
-        val u = UUID.fromString(raw.trim())
-        u.version() == 7
-    }.getOrDefault(false)
 
 @Composable
 fun SubscribePublicChannelScreen(
@@ -92,7 +86,7 @@ fun SubscribePublicChannelScreen(
             Button(
                 onClick = {
                     val id = channelId.trim()
-                    if (!isUuidV7(id)) {
+                    if (!PublicChannelIdValidator.isValid(id)) {
                         Toast.makeText(context, context.getString(R.string.error_invalid_channel_uuid), Toast.LENGTH_LONG).show()
                         return@Button
                     }

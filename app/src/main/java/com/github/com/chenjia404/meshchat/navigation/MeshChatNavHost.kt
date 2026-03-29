@@ -157,7 +157,7 @@ fun MeshChatNavHost(
                             is ChatListNavigateTarget.DirectChat ->
                                 navController.navigate("direct_chat/${target.conversationId}/${target.entryUnread}")
                             is ChatListNavigateTarget.PublicChannel ->
-                                navController.navigate("public_channel/${target.channelId}")
+                                navController.navigate("public_channel/${Uri.encode(target.channelId)}")
                             is ChatListNavigateTarget.GroupChat ->
                                 navController.navigate("group_chat/${target.groupId}")
                         }
@@ -214,7 +214,7 @@ fun MeshChatNavHost(
                 CreatePublicChannelScreen(
                     onBackClick = { navController.popBackStack() },
                     onCreated = { channelId ->
-                        navController.navigate("public_channel/$channelId") {
+                        navController.navigate("public_channel/${Uri.encode(channelId)}") {
                             popUpTo("create_public_channel") { inclusive = true }
                         }
                     },
@@ -224,7 +224,7 @@ fun MeshChatNavHost(
                 SubscribePublicChannelScreen(
                     onBackClick = { navController.popBackStack() },
                     onSubscribed = { channelId ->
-                        navController.navigate("public_channel/$channelId") {
+                        navController.navigate("public_channel/${Uri.encode(channelId)}") {
                             popUpTo("subscribe_public_channel") { inclusive = true }
                         }
                     },
@@ -282,7 +282,7 @@ fun MeshChatNavHost(
                 PublicChannelScreen(
                     onBackClick = { navController.popBackStack() },
                     onOpenChannelProfile = { id ->
-                        navController.navigate("public_channel_detail/$id")
+                        navController.navigate("public_channel_detail/${Uri.encode(id)}")
                     },
                     onOpenImage = { url, title ->
                         navController.navigate("image_preview/${Uri.encode(url)}/${Uri.encode(title)}")
