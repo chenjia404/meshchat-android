@@ -411,6 +411,17 @@ fun GroupChatScreen(
         }
     }
 
+    /** 进入群聊后首次有消息时滚到底部（最新一条）；含 meshproxy 普通群与超级群。 */
+    var initialScrollToBottomDone by remember(uiState.groupId) { mutableStateOf(false) }
+    LaunchedEffect(uiState.groupId, uiState.messages.size) {
+        if (uiState.messages.isEmpty()) return@LaunchedEffect
+        if (initialScrollToBottomDone) return@LaunchedEffect
+        initialScrollToBottomDone = true
+        delay(16L)
+        val lastIndex = uiState.messages.lastIndex.coerceAtLeast(0)
+        listState.scrollToItem(lastIndex)
+    }
+
     var previousLastMessageId by remember(uiState.groupId) { mutableStateOf<String?>(null) }
     LaunchedEffect(uiState.messages.lastOrNull()?.id, uiState.messages.size) {
         val list = uiState.messages

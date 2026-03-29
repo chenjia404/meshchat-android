@@ -52,6 +52,7 @@ import com.github.com.chenjia404.meshchat.data.remote.dto.MeshChatServerPatchUse
 import com.github.com.chenjia404.meshchat.data.remote.dto.MeshChatServerPostMessageBodyDto
 import com.github.com.chenjia404.meshchat.data.remote.dto.MeshChatServerRegisterFileBodyDto
 import com.github.com.chenjia404.meshchat.data.remote.dto.UpdateProfileBodyDto
+import com.github.com.chenjia404.meshchat.data.remote.ws.MeshChatServerWebSocket
 import com.github.com.chenjia404.meshchat.data.remote.ws.MeshChatSocket
 import com.github.com.chenjia404.meshchat.domain.model.ChatEvent
 import com.github.com.chenjia404.meshchat.domain.model.Contact
@@ -772,12 +773,14 @@ class AppCoordinator @Inject constructor(
     private val publicChannelRepository: PublicChannelRepository,
     private val chatEventsRepository: ChatEventsRepository,
     private val socket: MeshChatSocket,
+    private val meshChatServerWebSocket: MeshChatServerWebSocket,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
     fun start() {
         socket.start { eventDto ->
             runCatching { handleSocketEvent(eventDto) }
         }
+        meshChatServerWebSocket.start()
     }
 
     suspend fun refreshAll() {

@@ -80,3 +80,21 @@ fun HttpUrl.superGroupMembersList(groupId: String): HttpUrl =
 /** `POST /groups/{group_id}/members/invite`，body：`{ "peer_ids": [...] }` */
 fun HttpUrl.superGroupMembersInvite(groupId: String): HttpUrl =
     resolve("groups/$groupId/members/invite") ?: error("bad_super_group_base")
+
+/**
+ * meshchat-server WebSocket：[`GET /ws?token=<jwt>`](https://github.com/chenjia404/meshchat-server/blob/master/docs/API.md)，
+ * 与 HTTP API 同 scheme/host/port，路径为 `/ws`。
+ */
+fun buildMeshChatServerWebSocketUrl(apiBaseWithSlash: String, token: String): String {
+    val root = apiBaseWithSlash.trim().trimEnd('/').toHttpUrl()
+    val wsScheme = when (root.scheme) {
+        "https" -> "wss"
+        else -> "ws"
+    }
+    return root.newBuilder()
+        .scheme(wsScheme)
+        .encodedPath("/ws")
+        .addQueryParameter("token", token)
+        .build()
+        .toString()
+}

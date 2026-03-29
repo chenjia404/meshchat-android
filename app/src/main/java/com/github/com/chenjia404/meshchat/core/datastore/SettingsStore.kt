@@ -68,6 +68,17 @@ class SettingsStore @Inject constructor(
             initialValue = emptySet(),
         )
 
+    /** meshchat-server JWT 与对应 API 根（与 [getMeshChatServerJwtPair] 一致），供超级群 WebSocket 驱动连接。 */
+    val meshChatServerJwtPairFlow: StateFlow<Pair<String?, String?>> = context.meshChatDataStore.data
+        .map { preferences ->
+            Pair(preferences[Keys.MESHCHAT_SERVER_JWT], preferences[Keys.MESHCHAT_SERVER_JWT_API_BASE])
+        }
+        .stateIn(
+            scope = applicationScope,
+            started = SharingStarted.Eagerly,
+            initialValue = Pair(null, null),
+        )
+
     suspend fun getMeshChatJoinedServerBases(): Set<String> {
         val prefs = context.meshChatDataStore.data.first()
         return prefs[Keys.MESHCHAT_JOINED_SERVER_BASES] ?: emptySet()

@@ -128,6 +128,10 @@ interface GroupDao {
     @Query("SELECT * FROM groups WHERE isSuperGroup = 1")
     suspend fun getAllSuperGroupEntities(): List<GroupEntity>
 
+    /** 用于 meshchat-server WebSocket：订阅当前 JWT 对应基址下的超级群。 */
+    @Query("SELECT * FROM groups WHERE isSuperGroup = 1")
+    fun observeSuperGroups(): Flow<List<GroupEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(items: List<GroupEntity>)
 
@@ -154,7 +158,14 @@ interface GroupMessageDao {
     @Query("SELECT * FROM group_messages WHERE groupId = :groupId ORDER BY createdAt ASC")
     fun observeMessages(groupId: String): Flow<List<GroupMessageEntity>>
 
-    @Query("SELECT * FROM group_messages WHERE groupId = :groupId ORDER BY createdAt DESC LIMIT 1")
+    /**
+     * 超级群等场景下 [GroupMessageEntity.createdAt] 可能为空字符串，仅用时间排序会选错「最新」一条；
+     * 故用 epoch / senderSeq（meshchat-server 的 seq）作首要排序。
+     */
+    @Query(
+        "SELECT * FROM group_messages WHERE groupId = :groupId ORDER BY " +
+            "COALESCE(epoch, 0) DESC, COALESCE(senderSeq, 0) DESC, createdAt DESC LIMIT 1",
+    )
     fun observeLatestMessage(groupId: String): Flow<GroupMessageEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

@@ -144,6 +144,9 @@ class ChatListViewModel @Inject constructor(
             if (this.isNullOrBlank()) 0L else Instant.parse(trim()).toEpochMilli()
         }.getOrElse { 0L }
 
+    /** 接口可能返回空字符串，需视为「无值」以便回退到会话/群组的 lastMessageAt。 */
+    private fun String?.ifTimePresent(): String? = this?.takeIf { it.isNotBlank() }
+
     private val directRowsFlow = combine(
         directChatRepository.conversations,
         contactsRepository.contacts,
@@ -162,8 +165,8 @@ class ChatListViewModel @Inject constructor(
                         ?.takeIf { it.isNotBlank() }
                         ?: contact?.nickname?.takeIf { it.isNotBlank() }
                         ?: conversation.peerId
-                    val timeRaw = latestMessage?.createdAt
-                        ?: conversation.lastMessageAt
+                    val timeRaw = latestMessage?.createdAt.ifTimePresent()
+                        ?: conversation.lastMessageAt.ifTimePresent()
                         ?: conversation.updatedAt
                     ChatListMergedRow(
                         stableKey = "d:${conversation.conversationId}",
@@ -195,7 +198,9 @@ class ChatListViewModel @Inject constructor(
             combine(groups.map { groupRepository.observeLatestGroupMessage(it.groupId) }) { latestMessages ->
                 groups.mapIndexed { index, g ->
                     val latest = latestMessages[index]
-                    val timeRaw = latest?.createdAt ?: g.lastMessageAt ?: g.updatedAt
+                    val timeRaw = latest?.createdAt.ifTimePresent()
+                        ?: g.lastMessageAt.ifTimePresent()
+                        ?: g.updatedAt
                     ChatListMergedRow(
                         stableKey = "g:${g.groupId}",
                         sortKeyMillis = timeRaw.toSortMillis(),
