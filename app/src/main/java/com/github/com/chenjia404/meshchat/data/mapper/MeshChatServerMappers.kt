@@ -7,7 +7,10 @@ import com.github.com.chenjia404.meshchat.data.remote.dto.MeshChatServerMessageD
 import com.github.com.chenjia404.meshchat.data.remote.dto.MeshChatServerUserDto
 import com.google.gson.JsonObject
 
-fun MeshChatServerGroupDto.toGroupEntity(superGroupApiBaseUrl: String): GroupEntity {
+fun MeshChatServerGroupDto.toGroupEntity(
+    superGroupApiBaseUrl: String,
+    localUnreadCount: Int = 0,
+): GroupEntity {
     val now = updatedAt ?: createdAt ?: ""
     return GroupEntity(
         groupId = groupId,
@@ -26,6 +29,8 @@ fun MeshChatServerGroupDto.toGroupEntity(superGroupApiBaseUrl: String): GroupEnt
         updatedAt = now,
         isSuperGroup = true,
         superGroupApiBaseUrl = superGroupApiBaseUrl,
+        groupAbout = about.orEmpty(),
+        localUnreadCount = localUnreadCount,
     )
 }
 

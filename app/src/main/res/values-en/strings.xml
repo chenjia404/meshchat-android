@@ -300,4 +300,10 @@
     <string name="public_channel_unsubscribe_confirm_body">This channel will be removed from your chat list and local cache cleared.</string>
     <string name="public_channel_unsubscribe_confirm">OK</string>
     <string name="public_channel_toast_unsubscribed">Unsubscribed</string>
+
+    <string name="notification_channel_chat_messages_name">Chat messages</string>
+    <string name="notification_channel_chat_messages_desc">Alerts for new messages in direct chats, groups, channels, and super groups</string>
+    <string name="notification_new_message_fallback">New message</string>
+    <string name="notification_file_message_preview">[%1$s] %2$s</string>
+    <string name="notification_mime_fallback">file</string>
 </resources>

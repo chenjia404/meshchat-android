@@ -300,4 +300,10 @@
     <string name="public_channel_unsubscribe_confirm_body">将从会话列表中移除该频道，本地缓存会一并清除。</string>
     <string name="public_channel_unsubscribe_confirm">确定</string>
     <string name="public_channel_toast_unsubscribed">已取消订阅</string>
+
+    <string name="notification_channel_chat_messages_name">聊天消息</string>
+    <string name="notification_channel_chat_messages_desc">单聊、群聊、频道与超级群的新消息提醒</string>
+    <string name="notification_new_message_fallback">新消息</string>
+    <string name="notification_file_message_preview">[%1$s] %2$s</string>
+    <string name="notification_mime_fallback">文件</string>
 </resources>

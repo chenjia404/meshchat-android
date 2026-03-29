@@ -287,4 +287,10 @@
     <string name="public_channel_unsubscribe_confirm_body">將從會話清單中移除此頻道，並一併清除本機快取。</string>
     <string name="public_channel_unsubscribe_confirm">確定</string>
     <string name="public_channel_toast_unsubscribed">已取消訂閱</string>
+
+    <string name="notification_channel_chat_messages_name">聊天訊息</string>
+    <string name="notification_channel_chat_messages_desc">單聊、群聊、頻道與超級群組的新訊息提醒</string>
+    <string name="notification_new_message_fallback">新訊息</string>
+    <string name="notification_file_message_preview">[%1$s] %2$s</string>
+    <string name="notification_mime_fallback">檔案</string>
 </resources>

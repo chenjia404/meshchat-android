@@ -100,6 +100,10 @@ data class Group(
     val isSuperGroup: Boolean = false,
     /** 超级群 API 基址；仅超级群有值 */
     val superGroupApiBaseUrl: String? = null,
+    /** 超级群简介（meshchat-server about）；普通群为空 */
+    val groupAbout: String = "",
+    /** 超级群本地未读（meshproxy 群为 0） */
+    val localUnreadCount: Int = 0,
 )
 
 data class GroupDeliverySummary(

@@ -6,6 +6,7 @@ import coil.ImageLoader
 import com.github.com.chenjia404.meshchat.core.binary.BinaryRuntime
 import com.github.com.chenjia404.meshchat.core.dispatchers.ApplicationScope
 import com.github.com.chenjia404.meshchat.data.repository.AppCoordinator
+import com.github.com.chenjia404.meshchat.service.notification.LocalChatNotifier
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -17,6 +18,9 @@ import java.security.Security
 class MeshChatApp : Application() {
     @Inject
     lateinit var appCoordinator: AppCoordinator
+
+    @Inject
+    lateinit var localChatNotifier: LocalChatNotifier
 
     @Inject
     lateinit var binaryRuntime: BinaryRuntime
@@ -34,6 +38,7 @@ class MeshChatApp : Application() {
             Security.addProvider(BouncyCastleProvider())
         }
         Coil.setImageLoader(imageLoader)
+        localChatNotifier.ensureChannelsCreated()
         if (binaryRuntime.startIfNeeded()) {
             appCoordinator.start()
             applicationScope.launch {

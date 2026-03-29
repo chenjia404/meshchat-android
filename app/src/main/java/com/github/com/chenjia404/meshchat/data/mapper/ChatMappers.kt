@@ -232,6 +232,8 @@ fun GroupDto.toDomain() = Group(
     updatedAt = updatedAt,
     isSuperGroup = false,
     superGroupApiBaseUrl = null,
+    groupAbout = "",
+    localUnreadCount = 0,
 )
 
 fun Group.toEntity() = GroupEntity(
@@ -251,6 +253,8 @@ fun Group.toEntity() = GroupEntity(
     updatedAt,
     isSuperGroup,
     superGroupApiBaseUrl,
+    groupAbout,
+    localUnreadCount,
 )
 
 fun GroupEntity.toDomain() = Group(
@@ -270,6 +274,8 @@ fun GroupEntity.toDomain() = Group(
     updatedAt,
     isSuperGroup,
     superGroupApiBaseUrl,
+    groupAbout,
+    localUnreadCount,
 )
 
 fun GroupDeliverySummaryDto.toDomain() = GroupDeliverySummary(

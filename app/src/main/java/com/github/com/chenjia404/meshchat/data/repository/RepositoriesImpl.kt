@@ -1,7 +1,9 @@
 package com.github.com.chenjia404.meshchat.data.repository
 
 import androidx.room.Room
+import androidx.room.migration.Migration
 import androidx.room.withTransaction
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.github.com.chenjia404.meshchat.core.datastore.SettingsStore
 import com.github.com.chenjia404.meshchat.core.util.MeshchatHttpErrors
 import com.github.com.chenjia404.meshchat.core.util.superGroupApiRoot
@@ -54,6 +56,7 @@ import com.github.com.chenjia404.meshchat.data.remote.dto.MeshChatServerRegister
 import com.github.com.chenjia404.meshchat.data.remote.dto.UpdateProfileBodyDto
 import com.github.com.chenjia404.meshchat.data.remote.ws.MeshChatServerWebSocket
 import com.github.com.chenjia404.meshchat.data.remote.ws.MeshChatSocket
+import com.github.com.chenjia404.meshchat.service.notification.LocalChatNotifier
 import com.github.com.chenjia404.meshchat.domain.model.ChatEvent
 import com.github.com.chenjia404.meshchat.domain.model.Contact
 import com.github.com.chenjia404.meshchat.domain.model.DirectConversation
@@ -334,7 +337,9 @@ class DefaultGroupRepository @Inject constructor(
             val g = meshChatServerDirectApi.getGroup(base.superGroupDetail(groupId).toString())
             val baseStr = existing.superGroupApiBaseUrl?.takeIf { it.isNotBlank() }
                 ?: settingsStore.currentBaseUrl()
-            database.groupDao().upsert(g.toGroupEntity(baseStr))
+            database.groupDao().upsert(
+                g.toGroupEntity(baseStr, localUnreadCount = existing?.localUnreadCount ?: 0),
+            )
         } else {
             database.groupDao().upsert(api.getGroup(groupId).group.toDomain().toEntity())
         }
@@ -557,6 +562,11 @@ class DefaultGroupRepository @Inject constructor(
     private suspend fun collectKnownMeshChatServerBases(): Set<String> {
         val known = LinkedHashSet<String>()
         settingsStore.getMeshChatJoinedServerBases().forEach { known.add(normalizeMeshChatServerBaseUrl(it)) }
+        // 登录 meshchat-server 时写入的 JWT API 根（与「已加入」集合可能不同步；库被清空后仍须能拉取）
+        val (_, jwtApiBase) = settingsStore.getMeshChatServerJwtPair()
+        if (!jwtApiBase.isNullOrBlank()) {
+            known.add(normalizeMeshChatServerBaseUrl(jwtApiBase))
+        }
         database.groupDao().getDistinctSuperGroupApiBaseUrls().forEach { url ->
             if (url.isNotBlank()) {
                 known.add(normalizeMeshChatServerBaseUrl(url))
@@ -609,7 +619,7 @@ class DefaultGroupRepository @Inject constructor(
             member.user?.id?.let { settingsStore.setMeshChatServerUserId(it) }
             pushLocalProfileToMeshChatServer(base)
             val g = meshChatServerDirectApi.getGroup(base.superGroupDetail(parsed.groupId).toString())
-            database.groupDao().upsert(g.toGroupEntity(baseStr))
+            database.groupDao().upsert(g.toGroupEntity(baseStr, localUnreadCount = 0))
             settingsStore.addMeshChatJoinedServerBase(baseStr)
             refreshMessages(parsed.groupId)
             parsed.groupId
@@ -693,7 +703,9 @@ class DefaultGroupRepository @Inject constructor(
         }
         val g = meshChatServerDirectApi.patchGroup(base.superGroupDetail(groupId).toString(), body)
         val baseUrl = existing.superGroupApiBaseUrl.orEmpty()
-        database.groupDao().upsert(g.toGroupEntity(baseUrl))
+        database.groupDao().upsert(
+            g.toGroupEntity(baseUrl, localUnreadCount = existing.localUnreadCount),
+        )
         refreshGroup(groupId)
     }
 
@@ -733,7 +745,10 @@ class DefaultGroupRepository @Inject constructor(
                 val baseNorm = normalizeMeshChatServerBaseUrl(baseStr)
                 database.withTransaction {
                     for (dto in merged) {
-                        database.groupDao().upsert(dto.toGroupEntity(baseNorm))
+                        val prev = database.groupDao().getGroupOnce(dto.groupId)
+                        database.groupDao().upsert(
+                            dto.toGroupEntity(baseNorm, localUnreadCount = prev?.localUnreadCount ?: 0),
+                        )
                     }
                     val localForServer = database.groupDao().getAllSuperGroupEntities()
                         .filter { normalizeMeshChatServerBaseUrl(it.superGroupApiBaseUrl.orEmpty()) == baseNorm }
@@ -749,6 +764,10 @@ class DefaultGroupRepository @Inject constructor(
                 MeshchatHttpErrors.log("syncSuperGroupsFromAllKnownServers($baseStr)", e)
             }
         }
+    }
+
+    override suspend fun clearSuperGroupLocalUnread(groupId: String) = withContext(ioDispatcher) {
+        database.groupDao().clearSuperGroupLocalUnread(groupId)
     }
 }
 
@@ -774,6 +793,7 @@ class AppCoordinator @Inject constructor(
     private val chatEventsRepository: ChatEventsRepository,
     private val socket: MeshChatSocket,
     private val meshChatServerWebSocket: MeshChatServerWebSocket,
+    private val localChatNotifier: LocalChatNotifier,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
     fun start() {
@@ -813,6 +833,9 @@ class AppCoordinator @Inject constructor(
             }
 
             "message", "message_state" -> {
+                if (eventDto.type == "message") {
+                    runCatching { localChatNotifier.onMeshProxySocketMessage(eventDto) }
+                }
                 when (event.kind) {
                     "group" -> {
                         event.conversationId?.let { groupId ->
@@ -871,6 +894,26 @@ abstract class RepositoryBindings {
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
+    /**
+     * 仅增加 [com.github.com.chenjia404.meshchat.data.local.entity.GroupEntity.groupAbout]，
+     * 避免版本升级时 [fallbackToDestructiveMigration] 清空整库导致超级群等本地数据丢失。
+     */
+    private val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE groups ADD COLUMN groupAbout TEXT NOT NULL DEFAULT ''",
+            )
+        }
+    }
+
+    private val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE groups ADD COLUMN localUnreadCount INTEGER NOT NULL DEFAULT 0",
+            )
+        }
+    }
+
     @Provides
     @Singleton
     fun provideAppDatabase(
@@ -879,7 +922,10 @@ object DatabaseModule {
         context,
         AppDatabase::class.java,
         "meshchat.db",
-    ).fallbackToDestructiveMigration().build()
+    )
+        .addMigrations(MIGRATION_3_4, MIGRATION_4_5)
+        .fallbackToDestructiveMigration()
+        .build()
 
     @Provides
     @Singleton

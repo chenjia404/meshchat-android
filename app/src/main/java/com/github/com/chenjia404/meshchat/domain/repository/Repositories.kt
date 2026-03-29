@@ -117,6 +117,9 @@ interface GroupRepository {
      */
     suspend fun syncSuperGroupsFromAllKnownServers()
 
+    /** 进入超级群会话时清零本地未读角标 */
+    suspend fun clearSuperGroupLocalUnread(groupId: String)
+
     /**
      * 将当前本地资料 [PATCH /users/{peer_id}/profile] 推送到所有已知 meshchat-server；
      * 单台失败（网络/5xx 等）仅记录日志，不影响其它服务器。

@@ -104,6 +104,10 @@ data class GroupEntity(
     val isSuperGroup: Boolean = false,
     /** 超级群 HTTP API 根地址（如 `https://chat-api.example.com/`），可与设置中的 meshproxy 不同 */
     val superGroupApiBaseUrl: String? = null,
+    /** 超级群简介（meshchat-server `about`）；普通 meshproxy 群为空串 */
+    val groupAbout: String = "",
+    /** 超级群本地未读条数（仅 [isSuperGroup] 时维护；meshproxy 群恒为 0） */
+    val localUnreadCount: Int = 0,
 )
 
 @Entity(tableName = "group_messages")

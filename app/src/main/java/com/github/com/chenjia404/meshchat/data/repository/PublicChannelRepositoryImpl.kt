@@ -15,7 +15,9 @@ import com.github.com.chenjia404.meshchat.data.remote.dto.PublicChannelUpsertMes
 import com.github.com.chenjia404.meshchat.domain.model.PublicChannel
 import com.github.com.chenjia404.meshchat.domain.model.PublicChannelDetail
 import com.github.com.chenjia404.meshchat.domain.model.PublicChannelMessage
+import com.github.com.chenjia404.meshchat.domain.repository.ProfileRepository
 import com.github.com.chenjia404.meshchat.domain.repository.PublicChannelRepository
+import com.github.com.chenjia404.meshchat.service.notification.LocalChatNotifier
 import com.github.com.chenjia404.meshchat.service.storage.ChatAttachmentUrlBuilder
 import java.io.File
 import java.net.URLConnection
@@ -23,6 +25,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -35,6 +38,8 @@ class DefaultPublicChannelRepository @Inject constructor(
     private val api: MeshChatApi,
     private val database: PublicChannelDatabase,
     private val attachmentUrlBuilder: ChatAttachmentUrlBuilder,
+    private val profileRepository: ProfileRepository,
+    private val localChatNotifier: LocalChatNotifier,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : PublicChannelRepository {
 
@@ -259,6 +264,7 @@ class DefaultPublicChannelRepository @Inject constructor(
     }
 
     private suspend fun refreshMessagesInternal(channelId: String, limit: Int = 50) {
+        val prevLatestId = dao.latestMessage(channelId)?.messageId
         val page = api.getPublicChannelMessages(channelId, beforeMessageId = null, limit = limit)
         val items = page.items.orEmpty().sortedBy { it.messageId }
         database.withTransaction {
@@ -268,6 +274,15 @@ class DefaultPublicChannelRepository @Inject constructor(
             }
         }
         recomputeChannelMeta(channelId)
+        val latest = dao.latestMessage(channelId) ?: return
+        if (latest.messageId == prevLatestId) return
+        val myPeerId = profileRepository.myProfile.first()?.peerId?.trim().orEmpty()
+        if (myPeerId.isNotBlank() && latest.authorPeerId == myPeerId) return
+        localChatNotifier.onPublicChannelNewMessage(
+            channelId = channelId,
+            authorPeerId = latest.authorPeerId,
+            preview = previewTextForMessage(latest),
+        )
     }
 
     private suspend fun upsertSummaryFromDto(dto: PublicChannelSummaryDto, preservePreviewFromDb: Boolean) {

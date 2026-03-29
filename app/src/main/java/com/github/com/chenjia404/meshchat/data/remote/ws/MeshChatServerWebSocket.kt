@@ -7,6 +7,8 @@ import com.github.com.chenjia404.meshchat.core.util.MeshchatHttpErrors
 import com.github.com.chenjia404.meshchat.core.util.buildMeshChatServerWebSocketUrl
 import com.github.com.chenjia404.meshchat.core.util.normalizeMeshChatServerBaseUrl
 import com.github.com.chenjia404.meshchat.data.local.db.AppDatabase
+import com.github.com.chenjia404.meshchat.data.local.entity.GroupMessageEntity
+import androidx.room.withTransaction
 import com.github.com.chenjia404.meshchat.data.mapper.toGroupEntity
 import com.github.com.chenjia404.meshchat.data.mapper.toGroupMessageEntity
 import com.github.com.chenjia404.meshchat.data.remote.dto.MeshChatServerGroupDto
@@ -15,6 +17,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Named
@@ -34,6 +37,7 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import com.github.com.chenjia404.meshchat.domain.repository.GroupRepository
+import com.github.com.chenjia404.meshchat.service.notification.LocalChatNotifier
 
 /**
  * meshchat-server 实时通道：[`/ws?token=`](https://github.com/chenjia404/meshchat-server/blob/master/docs/API.md)
@@ -46,6 +50,7 @@ class MeshChatServerWebSocket @Inject constructor(
     private val database: AppDatabase,
     private val gson: Gson,
     private val groupRepository: GroupRepository,
+    private val localChatNotifier: LocalChatNotifier,
     private val settingsStore: SettingsStore,
     @Named("ws") private val webSocketClient: OkHttpClient,
     @ApplicationScope private val applicationScope: CoroutineScope,
@@ -157,9 +162,22 @@ class MeshChatServerWebSocket @Inject constructor(
                     gson.fromJson(dataEl, MeshChatServerMessageDto::class.java)
                 }.getOrNull() ?: return
                 runCatching {
-                    database.groupMessageDao().upsert(dto.toGroupMessageEntity())
+                    val entity = dto.toGroupMessageEntity()
+                    database.withTransaction {
+                        database.groupMessageDao().upsert(entity)
+                        val activityAt = entity.createdAt.trim().takeIf { it.isNotEmpty() }
+                            ?: Instant.now().toString()
+                        database.groupDao().patchLastMessageAt(
+                            groupId = dto.groupId,
+                            lastMessageAt = activityAt,
+                            updatedAt = activityAt,
+                        )
+                    }
                 }.onFailure { e ->
                     MeshchatHttpErrors.log("meshchat_server_ws_message_upsert", e)
+                }
+                if (type == "group.message.created") {
+                    runCatching { notifySuperGroupCreated(dto) }
                 }
             }
             "group.settings.updated" -> {
@@ -185,6 +203,33 @@ class MeshChatServerWebSocket @Inject constructor(
     /**
      * 文档中 `GroupMember` 未强制带 `group_id`；若服务端在 `data` 顶层附带则用于刷新群成员。
      */
+    private suspend fun notifySuperGroupCreated(dto: MeshChatServerMessageDto) {
+        val entity = dto.toGroupMessageEntity()
+        val preview = superGroupPreviewLine(dto, entity)
+        if (preview.isBlank()) return
+        val senderId = dto.sender?.id?.let { "meshchat_user_$it" } ?: "meshchat_unknown"
+        val label = dto.sender?.displayName?.takeIf { it.isNotBlank() }
+            ?: dto.sender?.username?.takeIf { it.isNotBlank() }
+            ?: senderId
+        localChatNotifier.onSuperGroupSocketMessage(
+            groupId = dto.groupId,
+            senderDisplay = label,
+            body = preview,
+            senderKey = senderId,
+        )
+    }
+
+    private fun superGroupPreviewLine(dto: MeshChatServerMessageDto, entity: GroupMessageEntity): String {
+        return when (dto.contentType) {
+            "text", "forward" -> entity.plaintext?.trim().orEmpty()
+            "image" -> "[图片]"
+            "video" -> "[视频]"
+            "voice" -> "[语音]"
+            "file" -> entity.fileName?.let { "[文件] $it" } ?: "[文件]"
+            else -> entity.plaintext?.trim().orEmpty()
+        }
+    }
+
     private fun extractGroupIdFromMemberEvent(dataEl: JsonElement?): String? {
         if (dataEl == null || !dataEl.isJsonObject) return null
         val o = dataEl.asJsonObject

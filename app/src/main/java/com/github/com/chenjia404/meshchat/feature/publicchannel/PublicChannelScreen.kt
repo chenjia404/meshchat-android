@@ -63,6 +63,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.github.com.chenjia404.meshchat.R
+import com.github.com.chenjia404.meshchat.service.notification.ActiveChatSession
+import com.github.com.chenjia404.meshchat.service.notification.ChatSessionNotificationEffect
 import com.github.com.chenjia404.meshchat.core.ui.AvatarImage
 import com.github.com.chenjia404.meshchat.core.ui.ChatMessageBubble
 import com.github.com.chenjia404.meshchat.core.ui.ChatMessageUiModel
@@ -421,6 +423,9 @@ fun PublicChannelScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val forwardUploading by viewModel.forwardAttachmentUploading.collectAsStateWithLifecycle()
+    if (uiState.channelId.isNotBlank()) {
+        ChatSessionNotificationEffect(ActiveChatSession.PublicChannel(uiState.channelId))
+    }
     val context = LocalContext.current
     var input by remember { mutableStateOf("") }
     var messageToForward by remember { mutableStateOf<ChatMessageUiModel?>(null) }

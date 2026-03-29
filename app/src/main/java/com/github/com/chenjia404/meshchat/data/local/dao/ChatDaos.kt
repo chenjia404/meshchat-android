@@ -57,6 +57,9 @@ interface ContactDao {
 
     @Query("DELETE FROM contacts WHERE peerId = :peerId")
     suspend fun deleteById(peerId: String)
+
+    @Query("SELECT * FROM contacts WHERE peerId = :peerId LIMIT 1")
+    suspend fun getContactOnce(peerId: String): ContactEntity?
 }
 
 @Dao
@@ -66,6 +69,9 @@ interface DirectConversationDao {
 
     @Query("SELECT * FROM direct_conversations WHERE conversationId = :conversationId LIMIT 1")
     fun observeConversation(conversationId: String): Flow<DirectConversationEntity?>
+
+    @Query("SELECT * FROM direct_conversations WHERE conversationId = :conversationId LIMIT 1")
+    suspend fun getConversationOnce(conversationId: String): DirectConversationEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(items: List<DirectConversationEntity>)
@@ -151,6 +157,26 @@ interface GroupDao {
         "UPDATE groups SET retentionMinutes = :minutes, updatedAt = :updatedAt WHERE groupId = :groupId",
     )
     suspend fun updateRetentionMinutes(groupId: String, minutes: Int, updatedAt: String)
+
+    /**
+     * meshchat-server WebSocket 写入 [group_messages] 后同步更新，驱动 [observeGroups] 与会话列表
+     * [flatMapLatest] 刷新（否则仅消息表变、群表不变，列表可能不重排/不刷新预览）。
+     */
+    @Query(
+        "UPDATE groups SET lastMessageAt = :lastMessageAt, updatedAt = :updatedAt WHERE groupId = :groupId",
+    )
+    suspend fun patchLastMessageAt(groupId: String, lastMessageAt: String, updatedAt: String)
+
+    @Query(
+        "UPDATE groups SET localUnreadCount = localUnreadCount + 1 " +
+            "WHERE groupId = :groupId AND isSuperGroup = 1",
+    )
+    suspend fun incrementSuperGroupLocalUnread(groupId: String)
+
+    @Query(
+        "UPDATE groups SET localUnreadCount = 0 WHERE groupId = :groupId AND isSuperGroup = 1",
+    )
+    suspend fun clearSuperGroupLocalUnread(groupId: String)
 }
 
 @Dao

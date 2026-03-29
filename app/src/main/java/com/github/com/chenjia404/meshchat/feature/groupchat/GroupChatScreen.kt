@@ -67,6 +67,8 @@ import com.github.com.chenjia404.meshchat.feature.directchat.voice.DirectChatInp
 import com.github.com.chenjia404.meshchat.feature.directchat.voice.HoldToTalkButton
 import com.github.com.chenjia404.meshchat.feature.directchat.voice.VoiceRecordOverlay
 import com.github.com.chenjia404.meshchat.R
+import com.github.com.chenjia404.meshchat.service.notification.ActiveChatSession
+import com.github.com.chenjia404.meshchat.service.notification.ChatSessionNotificationEffect
 import com.github.com.chenjia404.meshchat.core.dispatchers.ApplicationScope
 import com.github.com.chenjia404.meshchat.core.datastore.SettingsStore
 import com.github.com.chenjia404.meshchat.core.util.AttachmentRenderType
@@ -324,6 +326,9 @@ fun GroupChatScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val forwardUploading by viewModel.forwardAttachmentUploading.collectAsStateWithLifecycle()
+    if (uiState.groupId.isNotBlank()) {
+        ChatSessionNotificationEffect(ActiveChatSession.Group(uiState.groupId))
+    }
     val listState = rememberLazyListState()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current

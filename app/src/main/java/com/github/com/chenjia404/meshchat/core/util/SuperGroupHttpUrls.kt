@@ -83,16 +83,23 @@ fun HttpUrl.superGroupMembersInvite(groupId: String): HttpUrl =
 
 /**
  * meshchat-server WebSocket：[`GET /ws?token=<jwt>`](https://github.com/chenjia404/meshchat-server/blob/master/docs/API.md)，
- * 与 HTTP API 同 scheme/host/port，路径为 `/ws`。
+ * 与 HTTP API 同 host/port，路径为 `/ws`。
+ *
+ * **注意：** OkHttp 的 [HttpUrl] 只支持 `http` / `https`，不能用 `wss` / `ws` 调用 [HttpUrl.Builder.scheme]。
+ * [okhttp3.OkHttpClient.newWebSocket] 要求请求 URL 为 `http` 或 `https`，由客户端做 WebSocket 升级。
  */
 fun buildMeshChatServerWebSocketUrl(apiBaseWithSlash: String, token: String): String {
-    val root = apiBaseWithSlash.trim().trimEnd('/').toHttpUrl()
-    val wsScheme = when (root.scheme) {
-        "https" -> "wss"
-        else -> "ws"
+    val trimmed = apiBaseWithSlash.trim().trimEnd('/')
+    // 若用户误存 wss/ws 基址，先规范成 OkHttp 可解析的 http/https
+    val httpLike = when {
+        trimmed.length >= 6 && trimmed.substring(0, 6).equals("wss://", ignoreCase = true) ->
+            "https://" + trimmed.substring(6)
+        trimmed.length >= 5 && trimmed.substring(0, 5).equals("ws://", ignoreCase = true) ->
+            "http://" + trimmed.substring(5)
+        else -> trimmed
     }
+    val root = "$httpLike/".toHttpUrl()
     return root.newBuilder()
-        .scheme(wsScheme)
         .encodedPath("/ws")
         .addQueryParameter("token", token)
         .build()

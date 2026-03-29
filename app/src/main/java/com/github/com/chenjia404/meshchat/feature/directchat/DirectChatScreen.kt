@@ -67,6 +67,8 @@ import com.github.com.chenjia404.meshchat.core.ui.ChatMessageBubble
 import com.github.com.chenjia404.meshchat.core.ui.ChatMessageUiModel
 import com.github.com.chenjia404.meshchat.core.ui.EmptyState
 import com.github.com.chenjia404.meshchat.R
+import com.github.com.chenjia404.meshchat.service.notification.ActiveChatSession
+import com.github.com.chenjia404.meshchat.service.notification.ChatSessionNotificationEffect
 import com.github.com.chenjia404.meshchat.core.dispatchers.ApplicationScope
 import com.github.com.chenjia404.meshchat.core.util.AttachmentRenderType
 import com.github.com.chenjia404.meshchat.core.util.attachmentSubtitle
@@ -310,6 +312,9 @@ fun DirectChatScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val forwardUploading by viewModel.forwardAttachmentUploading.collectAsStateWithLifecycle()
+    if (uiState.conversationId.isNotBlank()) {
+        ChatSessionNotificationEffect(ActiveChatSession.Direct(uiState.conversationId))
+    }
     val entryUnreadCount = viewModel.entryUnreadCount
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()

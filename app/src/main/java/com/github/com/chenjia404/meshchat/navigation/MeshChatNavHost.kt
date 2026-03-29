@@ -20,8 +20,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import dagger.hilt.android.EntryPointAccessors
 import androidx.compose.ui.res.stringResource
 import com.github.com.chenjia404.meshchat.R
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,6 +57,8 @@ import com.github.com.chenjia404.meshchat.feature.publicchannel.SubscribePublicC
 import com.github.com.chenjia404.meshchat.feature.settings.SettingsScreen
 import com.github.com.chenjia404.meshchat.feature.share.ShareTargetsScreen
 import com.github.com.chenjia404.meshchat.share.IncomingShareManager
+import com.github.com.chenjia404.meshchat.service.notification.ChatNotificationEntryPoint
+import com.github.com.chenjia404.meshchat.service.notification.ChatOpenRequest
 import androidx.navigation.navArgument
 
 private data class BottomDestination(
@@ -68,7 +72,33 @@ fun MeshChatNavHost(
     incomingShareManager: IncomingShareManager,
 ) {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val appContext = context.applicationContext
+    val notificationEntryPoint = remember(appContext) {
+        EntryPointAccessors.fromApplication(appContext, ChatNotificationEntryPoint::class.java)
+    }
+    val chatOpenBus = notificationEntryPoint.chatOpenNavigationBus()
+    val pendingOpen by chatOpenBus.pending.collectAsStateWithLifecycle()
     val pendingShare by incomingShareManager.pending.collectAsStateWithLifecycle()
+
+    LaunchedEffect(pendingOpen) {
+        val req = pendingOpen ?: return@LaunchedEffect
+        when (req) {
+            is ChatOpenRequest.DirectChat ->
+                navController.navigate("direct_chat/${req.conversationId}/0") {
+                    launchSingleTop = true
+                }
+            is ChatOpenRequest.GroupChat ->
+                navController.navigate("group_chat/${req.groupId}") {
+                    launchSingleTop = true
+                }
+            is ChatOpenRequest.PublicChannel ->
+                navController.navigate("public_channel/${Uri.encode(req.channelId)}") {
+                    launchSingleTop = true
+                }
+        }
+        chatOpenBus.consumePending()
+    }
 
     LaunchedEffect(pendingShare) {
         val p = pendingShare
@@ -80,7 +110,6 @@ fun MeshChatNavHost(
     }
     val appUpdateViewModel: AppUpdateViewModel = hiltViewModel()
     val appUpdateInfo by appUpdateViewModel.appUpdateInfo.collectAsStateWithLifecycle()
-    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         appUpdateViewModel.checkForAppUpdate(context)
