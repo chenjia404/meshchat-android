@@ -333,6 +333,7 @@ class DefaultPublicChannelRepository @Inject constructor(
         return PublicChannelMessageEntity(
             channelId = dto.channelId,
             messageId = dto.messageId,
+            seq = dto.seq,
             messageType = dto.messageType,
             text = dto.content.text.orEmpty(),
             fileName = first?.fileName?.takeIf { it.isNotBlank() },
@@ -361,6 +362,7 @@ class DefaultPublicChannelRepository @Inject constructor(
     private fun PublicChannelMessageEntity.toDomain() = PublicChannelMessage(
         channelId = channelId,
         messageId = messageId,
+        seq = seq,
         messageType = messageType,
         text = text,
         fileName = fileName,

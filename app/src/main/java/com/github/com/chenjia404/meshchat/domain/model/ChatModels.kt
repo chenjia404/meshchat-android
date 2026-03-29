@@ -206,6 +206,8 @@ data class SuperGroupIntroSnapshot(
 data class PublicChannelMessage(
     val channelId: String,
     val messageId: Long,
+    /** 与 meshproxy 消息 `seq` 一致，用于未读定位 */
+    val seq: Long,
     val messageType: String,
     val text: String,
     val fileName: String?,

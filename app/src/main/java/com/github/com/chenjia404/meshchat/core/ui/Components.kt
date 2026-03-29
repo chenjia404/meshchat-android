@@ -74,6 +74,8 @@ data class ChatMessageUiModel(
     val state: String,
     /** 已删除/撤回等，用于隐藏菜单项 */
     val isDeleted: Boolean = false,
+    /** 公开频道消息的链上/服务端序号，用于进入会话时定位未读；其它会话为 0 */
+    val publicChannelSeq: Long = 0L,
 )
 
 @Composable

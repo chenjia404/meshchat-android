@@ -73,6 +73,9 @@ import com.github.com.chenjia404.meshchat.core.util.attachmentSubtitle
 import com.github.com.chenjia404.meshchat.core.util.requiresDownloadPipeForForward
 import com.github.com.chenjia404.meshchat.core.util.copyChatMessageToClipboard
 import com.github.com.chenjia404.meshchat.core.util.resolvePublicChannelRenderType
+import com.github.com.chenjia404.meshchat.domain.model.Contact
+import com.github.com.chenjia404.meshchat.domain.model.Profile
+import com.github.com.chenjia404.meshchat.domain.model.PublicChannel
 import com.github.com.chenjia404.meshchat.domain.model.PublicChannelMessage
 import com.github.com.chenjia404.meshchat.domain.repository.ContactsRepository
 import com.github.com.chenjia404.meshchat.domain.repository.ProfileRepository
@@ -116,6 +119,16 @@ data class PublicChannelChatUiState(
     val avatarUrl: String? = null,
     val isOwner: Boolean = false,
     val messages: List<ChatMessageUiModel> = emptyList(),
+    /** 进入会话后待应用一次滚动（对齐打开时的 last_seen_seq） */
+    val needInitialScroll: Boolean = false,
+    val initialScrollLastSeenSeq: Long = 0L,
+)
+
+private data class PublicChannelVmInputs(
+    val channel: PublicChannel?,
+    val messages: List<PublicChannelMessage>,
+    val profile: Profile?,
+    val contacts: List<Contact>,
 )
 
 @HiltViewModel
@@ -133,12 +146,25 @@ class PublicChannelViewModel @Inject constructor(
 ) : ViewModel() {
     private val channelId: String = checkNotNull(savedStateHandle["channelId"])
 
+    private val _needInitialScroll = MutableStateFlow(false)
+    private val _initialScrollLastSeenSeq = MutableStateFlow(0L)
+
     val uiState: StateFlow<PublicChannelChatUiState> = combine(
-        publicChannelRepository.observeChannel(channelId),
-        publicChannelRepository.observeMessages(channelId),
-        profileRepository.myProfile,
-        contactsRepository.contacts,
-    ) { channel, messages, profile, contacts ->
+        combine(
+            publicChannelRepository.observeChannel(channelId),
+            publicChannelRepository.observeMessages(channelId),
+            profileRepository.myProfile,
+            contactsRepository.contacts,
+        ) { channel, messages, profile, contacts ->
+            PublicChannelVmInputs(channel, messages, profile, contacts)
+        },
+        _needInitialScroll,
+        _initialScrollLastSeenSeq,
+    ) { inputs, needScroll, anchorSeq ->
+        val channel = inputs.channel
+        val messages = inputs.messages
+        val profile = inputs.profile
+        val contacts = inputs.contacts
         val ownerPeer = channel?.ownerPeerId.orEmpty()
         val myId = profile?.peerId
         val isOwner = myId != null && ownerPeer == myId
@@ -158,6 +184,8 @@ class PublicChannelViewModel @Inject constructor(
                     ownerDisplayName = ownerLabel,
                 )
             },
+            needInitialScroll = needScroll,
+            initialScrollLastSeenSeq = anchorSeq,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PublicChannelChatUiState())
 
@@ -166,13 +194,19 @@ class PublicChannelViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            runCatching {
+            val detail = runCatching {
                 publicChannelRepository.syncChannelOnOpen(channelId)
-            }
+            }.getOrNull()
+            _initialScrollLastSeenSeq.value = detail?.lastSeenSeq ?: 0L
+            _needInitialScroll.value = true
             runCatching {
                 publicChannelRepository.markPublicChannelRead(channelId)
             }
         }
+    }
+
+    fun acknowledgeInitialScroll() {
+        _needInitialScroll.value = false
     }
 
     fun sendText(text: String) {
@@ -369,6 +403,7 @@ class PublicChannelViewModel @Inject constructor(
             timestamp = Instant.ofEpochSecond(msg.createdAtEpoch).toString(),
             state = "sent",
             isDeleted = isDeleted,
+            publicChannelSeq = msg.seq,
         )
     }
 }
@@ -482,6 +517,15 @@ fun PublicChannelScreen(
             voiceElapsedMs = (SystemClock.elapsedRealtime() - voiceRecordStartElapsed).toInt().coerceIn(0, 60_000)
             voiceAmplitude = voiceRecorder.pollMaxAmplitude()
         }
+    }
+
+    LaunchedEffect(uiState.needInitialScroll, uiState.initialScrollLastSeenSeq, uiState.messages) {
+        if (!uiState.needInitialScroll || uiState.messages.isEmpty()) return@LaunchedEffect
+        val list = uiState.messages
+        val anchor = uiState.initialScrollLastSeenSeq
+        val idx = list.indexOfFirst { it.publicChannelSeq > anchor }.takeIf { it >= 0 } ?: list.lastIndex
+        listState.scrollToItem(idx.coerceIn(0, list.lastIndex))
+        viewModel.acknowledgeInitialScroll()
     }
 
     var previousLastMessageId by remember(uiState.channelId) { mutableStateOf<String?>(null) }

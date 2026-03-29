@@ -32,6 +32,7 @@ data class PublicChannelEntity(
 data class PublicChannelMessageEntity(
     val channelId: String,
     val messageId: Long,
+    val seq: Long = 0L,
     val messageType: String,
     val text: String,
     val fileName: String?,
