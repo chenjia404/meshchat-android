@@ -71,7 +71,17 @@ fun ContactDetailScreen(
         }
 
         Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-            Text("个人资料", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.contact_detail_section_profile), style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = item.bio,
+                onValueChange = {},
+                label = { Text(stringResource(R.string.label_bio)) },
+                placeholder = { Text(stringResource(R.string.contact_detail_bio_empty)) },
+                readOnly = true,
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2,
+            )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = item.peerId,

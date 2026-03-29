@@ -108,6 +108,8 @@
     <string name="contact_not_found_body">It may have been removed or the PeerID is wrong.</string>
     <string name="profile_section_title">Profile</string>
     <string name="label_peer_id">peer_id</string>
+    <string name="contact_detail_section_profile">Profile</string>
+    <string name="contact_detail_bio_empty">No bio</string>
     <string name="copy_peer_id">Copy peer_id</string>
     <string name="chat">Chat</string>
     <string name="chat_no_conversation">Chat (no conversation yet)</string>

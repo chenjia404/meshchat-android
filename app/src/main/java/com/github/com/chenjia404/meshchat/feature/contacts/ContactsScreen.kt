@@ -63,6 +63,8 @@ data class ContactUiModel(
     val peerId: String,
     val title: String,
     val subtitle: String,
+    /** 个人简介（与列表 subtitle 同源，列表空时 subtitle 可能为 updatedAt） */
+    val bio: String,
     val avatarUrl: String?,
     val blocked: Boolean,
     val conversationId: String?,
@@ -118,6 +120,7 @@ class ContactsViewModel @Inject constructor(
                     peerId = it.peerId,
                     title = it.nickname.ifBlank { it.remoteNickname ?: it.peerId },
                     subtitle = it.bio.ifBlank { it.updatedAt },
+                    bio = it.bio,
                     avatarUrl = attachmentUrlBuilder.avatarUrl(it.avatar),
                     blocked = it.blocked,
                     conversationId = conversationMap[it.peerId]?.conversationId,

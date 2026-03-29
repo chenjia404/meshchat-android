@@ -108,6 +108,8 @@
     <string name="contact_not_found_body">可能已被刪除或 PeerID 不正確。</string>
     <string name="profile_section_title">個人資料</string>
     <string name="label_peer_id">peer_id</string>
+    <string name="contact_detail_section_profile">個人資料</string>
+    <string name="contact_detail_bio_empty">暫無簡介</string>
     <string name="copy_peer_id">複製 peer_id</string>
     <string name="chat">聊天</string>
     <string name="chat_no_conversation">聊天（尚未建立會話）</string>
