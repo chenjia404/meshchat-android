@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Android 9 及以下写入公共「下载」目录（可选；未授权时改用系统 DownloadManager） -->
     <uses-permission

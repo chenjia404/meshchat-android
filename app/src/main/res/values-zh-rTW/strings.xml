@@ -83,6 +83,8 @@
 
     <string name="add_friend_title">新增好友</string>
     <string name="add_friend_subtitle">輸入對方的 PeerID，並送出好友邀請</string>
+    <string name="add_friend_scan_prompt">將 QR 圖碼對準框內以掃描 PeerID</string>
+    <string name="cd_scan_peer_id">掃碼填入 PeerID</string>
     <string name="label_target_peer_id">目標 PeerID</string>
     <string name="label_intro">附言</string>
     <string name="send_friend_request">送出邀請</string>

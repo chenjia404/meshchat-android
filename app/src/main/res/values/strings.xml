@@ -84,6 +84,8 @@
 
     <string name="add_friend_title">添加好友</string>
     <string name="add_friend_subtitle">输入对方 PeerID，并发送好友请求</string>
+    <string name="add_friend_scan_prompt">将二维码对准框内以扫描 PeerID</string>
+    <string name="cd_scan_peer_id">扫码填入 PeerID</string>
     <string name="label_target_peer_id">目标 PeerID</string>
     <string name="label_intro">附言</string>
     <string name="send_friend_request">发送请求</string>

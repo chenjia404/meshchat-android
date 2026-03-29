@@ -83,6 +83,8 @@
 
     <string name="add_friend_title">Add friend</string>
     <string name="add_friend_subtitle">Enter the other party\'s PeerID and send a request.</string>
+    <string name="add_friend_scan_prompt">Point the camera at the QR code to scan PeerID</string>
+    <string name="cd_scan_peer_id">Scan QR to fill PeerID</string>
     <string name="label_target_peer_id">Target PeerID</string>
     <string name="label_intro">Message</string>
     <string name="send_friend_request">Send request</string>
