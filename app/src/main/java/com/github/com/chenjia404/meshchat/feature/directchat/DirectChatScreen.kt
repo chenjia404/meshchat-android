@@ -168,6 +168,11 @@ class DirectChatViewModel @Inject constructor(
                     },
                     timestamp = message.createdAt,
                     state = message.state,
+                    senderPeerId = if (message.direction == MessageDirection.OUTBOUND) {
+                        null
+                    } else {
+                        conversation?.peerId?.takeIf { it.isNotBlank() } ?: message.senderPeerId.takeIf { it.isNotBlank() }
+                    },
                 )
             },
         )
@@ -514,7 +519,11 @@ fun DirectChatScreen(
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(end = 4.dp),
+                    .padding(end = 4.dp)
+                    .clickable(
+                        enabled = uiState.peerId.isNotBlank(),
+                        onClick = { onOpenContactProfile(uiState.peerId) },
+                    ),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -558,7 +567,7 @@ fun DirectChatScreen(
                     items(uiState.messages, key = { it.id }) { item ->
                         ChatMessageBubble(
                             message = item,
-                            showSenderName = false,
+                            showSenderName = true,
                             onOpenAttachment = { message ->
                                 when (message.renderType) {
                                     AttachmentRenderType.IMAGE -> message.remoteUrl?.let {
@@ -580,6 +589,7 @@ fun DirectChatScreen(
                             },
                             onForward = { messageToForward = it },
                             onRevoke = { viewModel.revoke(it.id) },
+                            onSenderProfileClick = { peerId -> onOpenContactProfile(peerId) },
                         )
                     }
                 }

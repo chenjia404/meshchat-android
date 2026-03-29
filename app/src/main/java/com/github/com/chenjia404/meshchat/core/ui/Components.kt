@@ -1,6 +1,7 @@
 package com.github.com.chenjia404.meshchat.core.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -76,6 +77,8 @@ data class ChatMessageUiModel(
     val isDeleted: Boolean = false,
     /** 公开频道消息的链上/服务端序号，用于进入会话时定位未读；其它会话为 0 */
     val publicChannelSeq: Long = 0L,
+    /** 发送者 peer_id，用于点击昵称打开联系人简介；单聊己方/无则为 null */
+    val senderPeerId: String? = null,
 )
 
 @Composable
@@ -121,6 +124,7 @@ fun SectionTitle(title: String) {
 private fun ChatMessageMetaRow(
     message: ChatMessageUiModel,
     showSenderName: Boolean,
+    onSenderNameClick: (() -> Unit)? = null,
 ) {
     val resources = LocalContext.current.resources
     val timeText = formatChatMessageLineTime(message.timestamp)
@@ -163,14 +167,22 @@ private fun ChatMessageMetaRow(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (!message.isMine && showSenderName) {
+                    val nameMod = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp)
+                        .then(
+                            if (onSenderNameClick != null) {
+                                Modifier.clickable(onClick = onSenderNameClick)
+                            } else {
+                                Modifier
+                            },
+                        )
                     Text(
                         text = message.title,
                         style = timeStyle,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(end = 8.dp),
+                        modifier = nameMod,
                     )
                 }
                 if (message.isMine) {
@@ -202,7 +214,7 @@ private fun ChatMessageMetaRow(
 @Composable
 fun ChatMessageBubble(
     message: ChatMessageUiModel,
-    /** 为 true 时在对方消息上方显示发送者昵称（群聊）；单聊应传 false */
+    /** 为 true 时在对方消息上方显示发送者昵称（群聊/单聊对方） */
     showSenderName: Boolean = true,
     /** 为 false 时不展示「撤回」（例如公开频道非 owner） */
     showRevokeMenu: Boolean = true,
@@ -214,7 +226,17 @@ fun ChatMessageBubble(
     onCopy: (ChatMessageUiModel) -> Unit,
     onForward: (ChatMessageUiModel) -> Unit,
     onRevoke: (ChatMessageUiModel) -> Unit,
+    /** 点击对方昵称时打开联系人简介；需 [ChatMessageUiModel.senderPeerId] 非空 */
+    onSenderProfileClick: ((peerId: String) -> Unit)? = null,
 ) {
+    val senderNameClick: (() -> Unit)? =
+        if (!message.isMine && onSenderProfileClick != null) {
+            message.senderPeerId?.takeIf { it.isNotBlank() }?.let { pid ->
+                { onSenderProfileClick(pid) }
+            }
+        } else {
+            null
+        }
     val bubbleBg = if (message.isMine) ChatBubbleOutgoing else ChatBubbleIncoming
     val onBubble = if (message.isMine) ChatBubbleOnOutgoing else ChatBubbleOnIncoming
     val onBubbleMuted = if (message.isMine) onBubble.copy(alpha = 0.92f) else MaterialTheme.colorScheme.onSurfaceVariant
@@ -251,7 +273,11 @@ fun ChatMessageBubble(
                         },
                     horizontalAlignment = if (message.isMine) Alignment.End else Alignment.Start,
                 ) {
-            ChatMessageMetaRow(message = message, showSenderName = showSenderName)
+            ChatMessageMetaRow(
+                message = message,
+                showSenderName = showSenderName,
+                onSenderNameClick = senderNameClick,
+            )
             Spacer(modifier = Modifier.height(4.dp))
             Surface(
                 shape = RoundedCornerShape(12.dp),

@@ -284,6 +284,9 @@ fun MeshChatNavHost(
                     onOpenChannelProfile = { id ->
                         navController.navigate("public_channel_detail/${Uri.encode(id)}")
                     },
+                    onOpenSenderProfile = { peerId ->
+                        navController.navigate("contact_detail/${Uri.encode(peerId)}")
+                    },
                     onOpenImage = { url, title ->
                         navController.navigate("image_preview/${Uri.encode(url)}/${Uri.encode(title)}")
                     },
@@ -322,6 +325,9 @@ fun MeshChatNavHost(
                     },
                     onOpenSuperGroupIntro = {
                         navController.navigate("super_group_intro/$gid")
+                    },
+                    onOpenContactProfile = { peerId ->
+                        navController.navigate("contact_detail/${Uri.encode(peerId)}")
                     },
                 )
             }

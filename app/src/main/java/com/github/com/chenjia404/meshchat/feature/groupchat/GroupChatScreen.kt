@@ -171,6 +171,7 @@ class GroupChatViewModel @Inject constructor(
                     },
                     timestamp = message.createdAt,
                     state = message.state,
+                    senderPeerId = message.senderPeerId.takeIf { it.isNotBlank() },
                 )
             },
             refreshError = refreshErr,
@@ -318,6 +319,7 @@ fun GroupChatScreen(
     onOpenVideo: (String, String) -> Unit,
     onOpenAudio: (String, String) -> Unit,
     onOpenSuperGroupIntro: () -> Unit = {},
+    onOpenContactProfile: (peerId: String) -> Unit = {},
     viewModel: GroupChatViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -573,6 +575,11 @@ fun GroupChatScreen(
                             },
                             onForward = { messageToForward = it },
                             onRevoke = { viewModel.revoke(it.id) },
+                            onSenderProfileClick = { peerId ->
+                                if (!peerId.startsWith("meshchat_user_")) {
+                                    onOpenContactProfile(peerId)
+                                }
+                            },
                         )
                     }
                 }

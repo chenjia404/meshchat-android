@@ -404,6 +404,7 @@ class PublicChannelViewModel @Inject constructor(
             state = "sent",
             isDeleted = isDeleted,
             publicChannelSeq = msg.seq,
+            senderPeerId = if (isMine) null else msg.authorPeerId.takeIf { it.isNotBlank() },
         )
     }
 }
@@ -412,6 +413,7 @@ class PublicChannelViewModel @Inject constructor(
 fun PublicChannelScreen(
     onBackClick: () -> Unit,
     onOpenChannelProfile: (channelId: String) -> Unit,
+    onOpenSenderProfile: (peerId: String) -> Unit = {},
     onOpenImage: (String, String) -> Unit,
     onOpenVideo: (String, String) -> Unit,
     onOpenAudio: (String, String) -> Unit,
@@ -668,7 +670,7 @@ fun PublicChannelScreen(
                     items(uiState.messages, key = { it.id }) { item ->
                         ChatMessageBubble(
                             message = item,
-                            showSenderName = false,
+                            showSenderName = true,
                             showRevokeMenu = uiState.isOwner,
                             isChannelOwner = uiState.isOwner,
                             onEdit = if (uiState.isOwner) {
@@ -703,6 +705,7 @@ fun PublicChannelScreen(
                                 val mid = m.id.substringAfterLast('_').toLongOrNull()
                                 if (mid != null) viewModel.revokeMessage(mid)
                             },
+                            onSenderProfileClick = { peerId -> onOpenSenderProfile(peerId) },
                         )
                     }
                 }
