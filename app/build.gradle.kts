@@ -7,14 +7,14 @@ plugins {
 
 android {
     namespace = "com.github.com.chenjia404.meshchat"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.github.com.chenjia404.meshchat"
         minSdk = 26
         targetSdk = 34
-        versionCode = 8
-        versionName = "1.0.8"
+        versionCode = 9
+        versionName = "1.0.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
