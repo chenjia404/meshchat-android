@@ -37,6 +37,8 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import com.github.com.chenjia404.meshchat.domain.repository.GroupRepository
+import com.github.com.chenjia404.meshchat.service.notification.ActiveChatSession
+import com.github.com.chenjia404.meshchat.service.notification.ChatActiveSessionStore
 import com.github.com.chenjia404.meshchat.service.notification.LocalChatNotifier
 
 /**
@@ -51,6 +53,7 @@ class MeshChatServerWebSocket @Inject constructor(
     private val gson: Gson,
     private val groupRepository: GroupRepository,
     private val localChatNotifier: LocalChatNotifier,
+    private val activeSessionStore: ChatActiveSessionStore,
     private val settingsStore: SettingsStore,
     @Named("ws") private val webSocketClient: OkHttpClient,
     @ApplicationScope private val applicationScope: CoroutineScope,
@@ -172,6 +175,9 @@ class MeshChatServerWebSocket @Inject constructor(
                             lastMessageAt = activityAt,
                             updatedAt = activityAt,
                         )
+                        if (type == "group.message.created") {
+                            incrementSuperGroupUnreadIfNeeded(dto)
+                        }
                     }
                 }.onFailure { e ->
                     MeshchatHttpErrors.log("meshchat_server_ws_message_upsert", e)
@@ -186,7 +192,14 @@ class MeshChatServerWebSocket @Inject constructor(
                     gson.fromJson(dataEl, MeshChatServerGroupDto::class.java)
                 }.getOrNull() ?: return
                 runCatching {
-                    database.groupDao().upsert(dto.toGroupEntity(normalizeMeshChatServerBaseUrl(apiBaseWithSlash)))
+                    val baseNorm = normalizeMeshChatServerBaseUrl(apiBaseWithSlash)
+                    val existing = database.groupDao().getGroupOnce(dto.groupId)
+                    database.groupDao().upsert(
+                        dto.toGroupEntity(
+                            baseNorm,
+                            localUnreadCount = existing?.localUnreadCount ?: 0,
+                        ),
+                    )
                 }.onFailure { e ->
                     MeshchatHttpErrors.log("meshchat_server_ws_group_upsert", e)
                 }
@@ -203,6 +216,15 @@ class MeshChatServerWebSocket @Inject constructor(
     /**
      * 文档中 `GroupMember` 未强制带 `group_id`；若服务端在 `data` 顶层附带则用于刷新群成员。
      */
+    /** 与 [LocalChatNotifier] 一致：本人发送不增未读；正在看该群不增。 */
+    private suspend fun incrementSuperGroupUnreadIfNeeded(dto: MeshChatServerMessageDto) {
+        val myMeshId = settingsStore.meshChatServerUserIdFlow.value
+        val senderKey = dto.sender?.id?.let { "meshchat_user_$it" } ?: "meshchat_unknown"
+        if (myMeshId != null && senderKey == "meshchat_user_$myMeshId") return
+        if (activeSessionStore.session.value == ActiveChatSession.Group(dto.groupId)) return
+        database.groupDao().incrementSuperGroupLocalUnread(dto.groupId)
+    }
+
     private suspend fun notifySuperGroupCreated(dto: MeshChatServerMessageDto) {
         val entity = dto.toGroupMessageEntity()
         val preview = superGroupPreviewLine(dto, entity)

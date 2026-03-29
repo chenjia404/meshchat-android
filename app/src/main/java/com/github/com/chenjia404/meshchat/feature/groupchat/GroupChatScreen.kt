@@ -184,7 +184,10 @@ class GroupChatViewModel @Inject constructor(
     val forwardAttachmentUploading: StateFlow<Boolean> = _forwardAttachmentUploading.asStateFlow()
 
     init {
-        viewModelScope.launch { refreshOnOpen() }
+        viewModelScope.launch {
+            groupRepository.clearSuperGroupLocalUnread(groupId)
+            refreshOnOpen()
+        }
     }
 
     /** 打开群聊时同步远端；网络错误（如 502）只记状态，不崩溃。 */

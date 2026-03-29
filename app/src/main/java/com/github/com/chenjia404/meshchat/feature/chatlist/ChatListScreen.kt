@@ -213,7 +213,7 @@ class ChatListViewModel @Inject constructor(
                         } else {
                             attachmentUrlBuilder.avatarUrl(g.avatar)
                         },
-                        unreadCount = 0,
+                        unreadCount = if (g.isSuperGroup) g.localUnreadCount else 0,
                         target = ChatListNavigateTarget.GroupChat(g.groupId),
                         latestMsgType = latest?.msgType,
                         latestPlaintext = latest?.plaintext,
